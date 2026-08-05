@@ -15,8 +15,8 @@ const items = await Promise.all(
     const title =
       linkTitle ??
       (url.startsWith("mailto:") || name === "mail"
-        ? `Send an email to ${site.title}`
-        : `${site.title} on ${name.charAt(0).toUpperCase() + name.slice(1)}`);
+        ? `Send an email to ${site.author}`
+        : `${site.author} on ${name.charAt(0).toUpperCase() + name.slice(1)}`);
     return { url, title, Icon };
   })
 );

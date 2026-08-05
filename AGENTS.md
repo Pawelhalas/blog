@@ -155,6 +155,13 @@ Light is the default mode. Dark is available via the existing theme toggle.
 Define these as CSS custom properties in `src/styles/theme.css`. No hardcoded hex outside that
 one file.
 
+**Text muted is decorative-only, verified 2026-08-05.** `#98917F` on `#F4F0E7` measures 2.76:1;
+`#625B51` on `#14120F` measures 2.79:1. Both fail WCAG AA even at the relaxed 3:1 threshold for
+large text/UI components. Keep the hex as spec'd (darkening it would collapse the distinction
+from text secondary, which measures a clean 5.08:1), but never use `--text-muted` /
+`--color-text-muted` for anything meant to be read — dividers, icon tints, watermark-style
+flourishes only. Reach for text secondary for any real content.
+
 ### Rules
 
 1. **Warm neutrals only.** No blue-grey, no pure `#000` or `#FFF`. Background is paper or ink.
@@ -200,8 +207,9 @@ Do these in sequence. Stop after each and show a preview.
 ### Quality gate before shipping
 
 - Lighthouse ≥95 across performance, a11y, best practices, SEO
-- WCAG AA contrast on **both** palettes — check `#98917F` on `#F4F0E7` specifically, it is the
-  riskiest pair
+- WCAG AA contrast on **both** palettes — `#98917F`/`#625B51` (text muted) fail even the relaxed
+  3:1 threshold; confirmed decorative-only, see the Tokens section above. Everything else used for
+  real content should clear 4.5:1.
 - `/rss.xml`, `/sitemap-index.xml`, `/robots.txt` all resolve
 - OG preview renders in a link debugger
 - No sample content left anywhere
