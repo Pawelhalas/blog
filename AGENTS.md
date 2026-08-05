@@ -204,6 +204,13 @@ Do these in sequence. Stop after each and show a preview.
    **propose how before implementing.**
 9. **A11y + focus states.** **Not designed yet.** Keyboard path through nav, search, tag links.
 
+**Optional, after step 9 — distinctive hero.** Pawel flagged on 2026-08-05 that he may want to
+rebuild the wordmark, or drop it entirely in favour of a distinctive hero section. Not scheduled
+and not a defect in step 4 — revisit once the whole restyle is in place and the site can be judged
+as a whole. **Not designed yet — propose before building.** If the wordmark goes, rule 8 (the 3px
+vermilion bar) and the accent budget in rule 2 both need rewriting, since the bar is one of the
+four sanctioned accent uses.
+
 ### Quality gate before shipping
 
 - Lighthouse ≥95 across performance, a11y, best practices, SEO
