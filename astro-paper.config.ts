@@ -2,14 +2,14 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
-    title: "AstroPaper",
-    description: "A minimal, responsive and SEO-friendly Astro blog theme.",
-    author: "Sat Naing",
-    profile: "https://satna.ing",
+    url: "https://blog-b0i.pages.dev/",
+    title: "Mniej szumu",
+    description: "Zapisuję własne myśli w świecie AI slopu.",
+    author: "Paweł Halas",
+    profile: "https://www.linkedin.com/in/pawel-halas-1b921264",
     ogImage: "default-og.jpg",
     lang: "en",
-    timezone: "Asia/Bangkok",
+    timezone: "Europe/Warsaw",
     dir: "ltr",
   },
   posts: {
@@ -23,16 +23,15 @@ export default defineAstroPaperConfig({
     showArchives: true,
     showBackButton: true,
     editPost: {
-      enabled: true,
-      url: "https://github.com/satnaing/astro-paper/edit/main/",
+      enabled: false,
     },
     search: "pagefind",
   },
   socials: [
-    { name: "github",   url: "https://github.com/satnaing/astro-paper" },
-    { name: "x",        url: "https://x.com/username" },
-    { name: "linkedin", url: "https://www.linkedin.com/in/username/" },
-    { name: "mail",     url: "mailto:yourmail@gmail.com" },
+    { name: "linkedin",   url: "https://www.linkedin.com/in/pawel-halas-1b921264" },
+    { name: "instagram",  url: "https://www.instagram.com/pawelxhalas/" },
+    { name: "letterboxd", url: "https://letterboxd.com/pawelxhalas/" },
+    { name: "mail",       url: "mailto:p.l.halas@gmail.com" },
   ],
   shareLinks: [
     { name: "whatsapp", url: "https://wa.me/?text=" },
