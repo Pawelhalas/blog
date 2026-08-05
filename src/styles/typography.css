@@ -4,6 +4,19 @@
   /* ===== Override default Tailwind Typography styles ===== */
   .app-prose {
     @apply prose;
+    font-size: 1.125rem;
+    line-height: 1.6;
+
+    /* Measure is set on the text elements, not the container: the container
+       carries the `app-layout` utility, which wins the cascade over any
+       base-layer max-width. This also lets images, tables and code blocks
+       span the full width while prose stays readable. */
+    p,
+    ul,
+    ol,
+    blockquote {
+      max-width: 70ch;
+    }
 
     h1,
     h2,
@@ -86,7 +99,7 @@
     }
 
     code {
-      @apply bg-muted/75 text-foreground rounded p-1 wrap-break-word before:content-none after:content-none;
+      @apply bg-muted/75 text-foreground font-data rounded p-1 wrap-break-word before:content-none after:content-none;
     }
 
     .astro-code code {
