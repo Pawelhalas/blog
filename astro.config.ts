@@ -29,8 +29,11 @@ export default defineConfig({
     }),
   ],
   i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    // Astro.currentLocale is derived from this, and Layout.astro prefers it
+    // over site.lang - so the html lang attribute follows defaultLocale here,
+    // not astro-paper.config.ts alone. Keep the two in step.
+    locales: ["pl"],
+    defaultLocale: "pl",
     routing: {
       prefixDefaultLocale: false,
     },
