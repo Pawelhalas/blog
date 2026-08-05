@@ -7,28 +7,36 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  /* Shotengai's finer 3rd text tier and 2nd hairline tier. Not yet consumed by any
+     component - reserved for steps 3-7 (typography, header, homepage, index pages). */
+  --color-text-muted: var(--text-muted);
+  --color-hairline-subtle: var(--hairline-subtle);
   --font-app: var(--font-google-sans-code);
 }
 
-/* Light theme values */
+/* Light theme values (default) - Shotengai palette */
 :root,
 [data-theme="light"] {
-  --background: #fdfdfd;
-  --foreground: #282728;
-  --accent: #006cac;
+  --background: #f4f0e7;
+  --foreground: #1f1c17;
+  --accent: #c9522e;
   --accent-foreground: #ffffff;
-  --muted: #e6e6e6;
-  --muted-foreground: #6b7280;
-  --border: #ece9e9;
+  --muted: #e4ded2;
+  --muted-foreground: #6b655b;
+  --border: #ddd6c8;
+  --text-muted: #98917f;
+  --hairline-subtle: #e4ded2;
 }
 
-/* Dark theme values */
+/* Dark theme values - Shotengai palette */
 [data-theme="dark"] {
-  --background: #212737;
-  --foreground: #eaedf3;
-  --accent: #ff6b01;
+  --background: #14120f;
+  --foreground: #ede7da;
+  --accent: #c9522e;
   --accent-foreground: #ffffff;
-  --muted: #343f60;
-  --muted-foreground: #afb9ca;
-  --border: #ab4b08;
+  --muted: #201d19;
+  --muted-foreground: #9a9184;
+  --border: #2a2621;
+  --text-muted: #625b51;
+  --hairline-subtle: #201d19;
 }
