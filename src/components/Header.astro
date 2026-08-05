@@ -1,6 +1,5 @@
 ---
 import { getRelativeLocaleUrl } from "astro:i18n";
-import IconUnderline from "@/assets/icons/IconUnderline.svg";
 import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
 import IconArchive from "@/assets/icons/IconArchive.svg";
 import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
@@ -48,11 +47,18 @@ const isActive = (path: string) => {
   <div
     class="border-border bg-background relative flex w-full items-baseline justify-between border-b py-4 sm:items-center sm:py-6"
   >
+    <!-- Wordmark: 3px vermilion bar + lowercase mono name. The bar is
+         decorative; the accessible name comes from the text beside it. -->
     <a
       href={getRelativeLocaleUrl(locale, "")}
-      class="absolute py-1 text-xl leading-8 font-semibold whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none"
+      class="absolute flex items-stretch gap-2.5 py-1 whitespace-nowrap sm:static sm:my-auto"
     >
-      {site.title}
+      <span aria-hidden="true" class="bg-accent w-[3px] shrink-0"></span>
+      <span
+        class="font-data text-xl leading-8 font-medium lowercase sm:text-2xl sm:leading-none"
+      >
+        {site.title}
+      </span>
     </a>
     <nav
       id="nav-menu"
@@ -72,11 +78,12 @@ const isActive = (path: string) => {
       </button>
       <ul
         id="menu-items"
-        class="[&>li>a]:hover:text-accent mt-4 hidden w-44 grid-cols-2 place-content-center gap-2 sm:mt-0 sm:flex sm:w-auto sm:gap-x-5 sm:gap-y-0 sm:[&>li]:h-8 [&>li>a]:block [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:font-medium sm:[&>li>a]:px-2 sm:[&>li>a]:py-1"
+        class="font-data [&>li>a]:hover:text-accent mt-4 hidden w-44 grid-cols-2 place-content-center gap-2 text-sm tracking-wide sm:mt-0 sm:flex sm:w-auto sm:gap-x-5 sm:gap-y-0 sm:[&>li]:h-8 [&>li>a]:block [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center sm:[&>li>a]:px-2 sm:[&>li>a]:py-1"
       >
         <li class="col-span-2">
           <a
             href={getRelativeLocaleUrl(locale, "posts")}
+            aria-current={isActive("/posts") ? "page" : undefined}
             class:list={{ "active-nav": isActive("/posts") }}
           >
             {t.nav.posts}
@@ -85,6 +92,7 @@ const isActive = (path: string) => {
         <li class="col-span-2">
           <a
             href={getRelativeLocaleUrl(locale, "tags")}
+            aria-current={isActive("/tags") ? "page" : undefined}
             class:list={{ "active-nav": isActive("/tags") }}
           >
             {t.nav.tags}
@@ -93,6 +101,7 @@ const isActive = (path: string) => {
         <li class="col-span-2">
           <a
             href={getRelativeLocaleUrl(locale, "about")}
+            aria-current={isActive("/about") ? "page" : undefined}
             class:list={{ "active-nav": isActive("/about") }}
           >
             {t.nav.about}
@@ -105,19 +114,14 @@ const isActive = (path: string) => {
                 href={getRelativeLocaleUrl(locale, "archives")}
                 class:list={[
                   "focus-outline flex size-full justify-center p-3 sm:relative sm:size-8 sm:p-0",
-                  { "active-nav": isActive("/archives") },
+                  { "text-accent": isActive("/archives") },
                 ]}
                 title={t.nav.archives}
                 aria-label={t.nav.archives}
+                aria-current={isActive("/archives") ? "page" : undefined}
               >
                 <IconArchive class="hidden sm:absolute sm:top-1/2 sm:left-1/2 sm:block sm:size-6 sm:-translate-x-1/2 sm:-translate-y-1/2" />
                 <span class="sm:sr-only">{t.nav.archives}</span>
-                {isActive("/archives") && (
-                  <IconUnderline
-                    aria-hidden="true"
-                    class="scale-125 max-sm:hidden sm:absolute sm:bottom-0 sm:w-6"
-                  />
-                )}
               </LinkButton>
             </li>
           )
@@ -127,18 +131,16 @@ const isActive = (path: string) => {
             <li class="col-span-1 flex items-center justify-center">
               <LinkButton
                 href={getRelativeLocaleUrl(locale, "search")}
-                class:list={["focus-outline relative size-8"]}
+                class:list={[
+                  "focus-outline relative size-8",
+                  { "text-accent": isActive("/search") },
+                ]}
                 title={t.nav.search}
                 aria-label={t.nav.search}
+                aria-current={isActive("/search") ? "page" : undefined}
               >
                 <IconSearch class="absolute top-1/2 left-1/2 size-6 -translate-x-1/2 -translate-y-1/2" />
                 <span class="sr-only">{t.nav.search}</span>
-                {isActive("/search") && (
-                  <IconUnderline
-                    aria-hidden="true"
-                    class="absolute bottom-0 w-6 scale-125 max-sm:inset-s-2"
-                  />
-                )}
               </LinkButton>
             </li>
           )
