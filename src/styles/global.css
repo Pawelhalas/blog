@@ -30,7 +30,9 @@
 }
 
 @utility active-nav {
-  @apply underline decoration-wavy decoration-2 underline-offset-8;
+  /* Current item: accent plus a hairline underline. The underline keeps the
+     state from resting on colour alone; aria-current carries it for AT. */
+  @apply text-accent underline decoration-1 underline-offset-[6px];
 }
 
 :target {
