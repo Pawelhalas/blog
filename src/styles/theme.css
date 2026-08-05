@@ -11,7 +11,9 @@
      component - reserved for steps 3-7 (typography, header, homepage, index pages). */
   --color-text-muted: var(--text-muted);
   --color-hairline-subtle: var(--hairline-subtle);
-  --font-app: var(--font-google-sans-code);
+  /* Two typefaces, two jobs: sans for prose, mono strictly for machine data. */
+  --font-app: var(--font-sans);
+  --font-data: var(--font-mono);
 }
 
 /* Light theme values (default) - Shotengai palette */
