@@ -240,9 +240,19 @@ These are unresolved. Don't assume an answer.
 
 - **Domain.** `pawelhalas.com` is the recommendation, not yet purchased. Site title stays
   separate from domain.
-- **PL/EN weighting.** Depends on whether the job search is Poland-only or Europe/remote.
-  Unresolved.
-- **`lang` frontmatter field.** Needs a schema change before any Polish post ships.
+- **PL/EN weighting.** Resolved 2026-08-05 for the near term: the site is Polish. `site.lang`
+  and Astro's `i18n.defaultLocale` are both `pl`, so pages render `<html lang="pl">` and Pagefind
+  indexes with Polish stemming. Whether English content ever joins is still open and depends on
+  whether the job search stays Poland-only.
+  **Both settings must move together.** `Layout.astro` reads `Astro.currentLocale ?? site.lang`,
+  and `Astro.currentLocale` comes from `astro.config.ts` — so changing `astro-paper.config.ts`
+  alone silently does nothing.
+- **UI chrome is still English.** `src/i18n/lang/` ships `en.ts` only; `useTranslations` falls
+  back to English for any unknown locale, so nav, dates and footer read "Posts"/"Tags"/"About" on
+  a Polish site. Fixing it means writing `pl.ts` — mechanical, but the wording is Pawel's call,
+  not something to guess. **Not done yet.**
+- **`lang` frontmatter field.** Only needed if PL and EN posts ever coexist. A single-language
+  site does not need it; the site-wide setting above covers today's case.
 - **Analytics.** GoatCounter under evaluation; data retention needs verifying. Cloudflare's
   30-day window was ruled out as insufficient.
 - **Case study template.** No AstroPaper precedent. Undesigned.

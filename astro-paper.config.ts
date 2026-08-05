@@ -8,7 +8,7 @@ export default defineAstroPaperConfig({
     author: "Paweł Halas",
     profile: "https://www.linkedin.com/in/pawel-halas-1b921264",
     ogImage: "default-og.jpg",
-    lang: "en",
+    lang: "pl",
     timezone: "Europe/Warsaw",
     dir: "ltr",
   },
