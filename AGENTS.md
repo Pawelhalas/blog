@@ -256,3 +256,20 @@ These are unresolved. Don't assume an answer.
 - **Analytics.** GoatCounter under evaluation; data retention needs verifying. Cloudflare's
   30-day window was ruled out as insufficient.
 - **Case study template.** No AstroPaper precedent. Undesigned.
+
+---
+
+## Backlog
+
+Wanted, but not scheduled and not designed. Establish scope before building.
+
+- **Automated post-release workflow.** Pawel flagged on 2026-08-12 that he wants the
+  draft → publish path optimised and partly automated. **Scope and guardrails are explicitly
+  undecided and must be agreed before any implementation** — his words. Candidates worth putting
+  on the table when that conversation happens: frontmatter scaffolding and validation before
+  commit, filename/permalink linting (ASCII-only, no diacritics), a pre-push `astro check` gate so
+  a bad post fails locally rather than in the Cloudflare deploy, tag-vocabulary consistency, and
+  scheduled publishing — which today does **not** work unattended, because Cloudflare only
+  rebuilds on push, so a future `pubDatetime` needs a later push to appear.
+  The guardrail question to settle first: how much the automation is allowed to do without a human
+  reading the diff, given publishing is public and hard to retract.
