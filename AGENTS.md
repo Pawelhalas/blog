@@ -273,3 +273,17 @@ Wanted, but not scheduled and not designed. Establish scope before building.
   rebuilds on push, so a future `pubDatetime` needs a later push to appear.
   The guardrail question to settle first: how much the automation is allowed to do without a human
   reading the diff, given publishing is public and hard to retract.
+
+- **Posts list redesign.** Pawel flagged on 2026-08-13 that the posts list section wants
+  redesigning. **Not designed yet — propose before building.** Note this is not the same as
+  building it: steps 5 and 7 already cover a first pass at the list (date column, hairline rule,
+  count) and should still be built to spec. This item is the redesign that follows, once there is
+  enough real content to judge the pattern against. Settle first whether it changes the homepage
+  list, `/posts`, tag detail pages, or all three — the spec currently asks all of them to share one
+  date-column pattern, so a change to one is a change to the system.
+
+- **Wordmark / main header redesign.** Reaffirmed 2026-08-13. Already recorded in the work order
+  as *"Optional, after step 9 — distinctive hero"* — see that entry for the knock-on effects, since
+  dropping the wordmark invalidates rule 8 and frees one of the four sanctioned accent uses in
+  rule 2. Listed here so it is visible alongside the other unscheduled work.
+  **Not designed yet — propose before building.**
