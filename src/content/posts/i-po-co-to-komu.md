@@ -1,6 +1,6 @@
 ---
 title: I po co to komu?
-description: Trochę o mojej historii oraz o powodach, dla których postawiłem tę stronę i po latach po wracam do pisania
+description: Trochę o mojej historii oraz o powodach, dla których postawiłem tę stronę i po latach po wracam do pisania.
 pubDatetime: 2026-08-11T09:00:00Z
 tags:
   - product management
@@ -10,7 +10,7 @@ tags:
   - pisanie
 ---
 
-![](../../assets/images/kid-watching-champions-league.png)
+![Dzieciak ogląda mecz Ligi Mistrzów przed telewizorem](../../assets/images/kid-watching-champions-league-violet.png)
 
 **Nie wiem, czy pisanie kiedykolwiek sprawiało mi wielką przyjemność, ale na pewno przychodziło mi łatwo.**
 
@@ -18,7 +18,7 @@ Pamiętam, że wypracowania na język polski w liceum cisnąłem w środy późn
 
 Kolejna godzina bądź dwie i miałem gotową recenzję jakiejś płyty albo filmu. Wysyłałem je do różnych internetowych redakcji i - w zamian za publikację - dostawałem płyty CD albo DVD. Easy money!
 
-Pisać przestałem na studiach... dziennikarskich. :clown_face:
+Pisać przestałem na studiach... dziennikarskich.
 
 Poszedłem na nie z przekonaniem, że zostanę nowym Tomaszem Lisem albo Kubą Wojewódzkim. Wiem jak cringe'owo to dziś brzmi, ale kiedyś to była topka polskiego dziennikarstwa. Po roku i kilku przygodach w lokalnych redakcjach, zrozumiałem, że to zupełnie nie moja bajka.
 
@@ -28,16 +28,14 @@ Po pierwsze, szukam narzędzia, która pomoże mi efektywniej zbierać myśli i 
 
 Chciałbym trochę częściej myśleć trochę wolniej.
 
-Po drugie, potrzebuję miejsca, w którym będę stawiał opór otaczającemu nas szumowi komunikacyjnemu i AI slopowi. Nie zrozummy się źle, korzystam z AI-owych narzędzi chętnie i często. Coraz częściej. O swoich przygodach z Claude Code, Lovable, czy  będę tu na pewno pisał (ta strona powstała z Claude Code!). Ale właśnie dzięki interakcji z narzędziami AI zauważam, jak szybko i radykalnie zmienia się mój sposób tworzenia i konsumpcji treści.
+Po drugie, potrzebuję miejsca, w którym będę mógł się stawić opór otaczającemu mnie szumowi komunikacyjnemu i AI slopowi. Nie zrozummy się źle, korzystam z AI-owych narzędzi chętnie i często. Coraz częściej. Zresztą, o swoich przygodach z Claude Code czy Lovable, będę tu na pewno od czasu do czasu wspominał. Ale właśnie dzięki interakcji z narzędziami AI zauważam, jak szybko i radykalnie zmienia się mój sposób tworzenia i konsumpcji treści. Chciałbym znaleźć dla niego przeciwwagę.  
 
-Wydaje mi się też, że własne, unikalne, nie zaśmiecone przez interakcję z AI treści będą niedługo na wagę złota. Dlatego zamierzam zainwestować w ich tworzenie trochę swojego czasu. I wiem - nie jest to pewnie prognoza na miarę słynnego "water betu" Michaela Burry'ego.
+Zresztą, wydaje mi się też, że własne, unikalne, nie zaśmiecone przez interakcję z AI treści będą niedługo na wagę złota. Dlatego zamierzam zainwestować w ich tworzenie trochę swojego czasu. Może nie jest to prognoza na miarę słynnego "water betu" Michaela Burry'ego, ale na moje potrzeby wystarczy. 
 
 Po trzecie w końcu, w następstwie małych zawodowych zawirowań (o których kiedyś pewnie napiszę), mam teraz trochę więcej czasu. Jako, że zawodowo jestem związany z brażą IT i budowaniem produktów cyfrowych, mocno nosi mnie, by wypchnąć coś na produkcję. Mniej szumu wypuszczam więc też z myślą zapisywaniu obserwacji ze świata technologii i product managementu oraz o zbieraniu notatek i wniosków z własnych przygód w prototypowaniu, walidacji pomysłów oraz wyciągnia od użytkowników informacji o problemach, które warto rozwiązywać.
 
 O czym więc dokładnie będzie ta strona, dopiero się okaże.
 
-Obiecałem sobie przy okazji spisywania założeń tworzenia Mniej szumu, że nic, co opublikuję nie powstanie z wykorzystaniem AI. Nie ma być idealnie - ma być po mojemu.
-
-Drugim oczekiwaniem, jakie sam przed sobą stawiam, jest konkretna wydawnicza kadencja. Nowe wpisy powinny pojawiać się nie rzadziej, niż raz na dwa tygodnie.
+Obiecałem sobie przy okazji spisywania założeń tworzenia Mniej szumu, że nic, co opublikuję nie powstanie z wykorzystaniem AI. Nie ma być idealnie - ma być po mojemu. Drugim oczekiwaniem, jakie sam przed sobą stawiam, jest konkretna wydawnicza kadencja. Nowe wpisy powinny pojawiać się nie rzadziej, niż raz na dwa tygodnie.
 
 Wszystko inne wyjdzie w praniu.

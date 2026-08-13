@@ -8,36 +8,46 @@ tags:
   - etyka
 ---
 
-![](../../assets/images/claude-code-on-tank.png)
+![Claude code jedzie na czołgu z flagą Stanów Zjednoczonych w dłoni](../../assets/images/claude-code-on-tank-green.png)
 
-### Obejrzałem ostatnio na YT dokument Bloomberga o firmie Anthropic.
+**Obejrzałem ostatnio na YT dokument Bloomberga o niesamowitym sukcesie Anthropica i trochę mnie zmroziło.** 
 
-Pewnie nie trzeba jej nikomu przestawiać, ale dla formalności: Anthropic to organizacja, która stoi za dużymi modelami językowymi Claude oraz działającymi na ich bazie: Claude Code, Claude Cowork i Claude Design.
+Firmy Anthropic pewnie nie trzeba nikomu przestawiać, ale dla formalności: to twórcy dużych modeli językowych Claude oraz działającego na ich bazie ekosystemu narzędzi: Claude Code, Claude Cowork i Claude Design. Powstały w 2021 Anthropic jest obecnie wyceniany na ponad 900 miliardów dolarów, co czyni go jedną z najbardziej wartościowych organizacji na świecie.
 
-W wywiadzie do tego dokumentu, Dario Amodei, założyciel i CEO Anthropica, odpowiada na pytania autorki o wykorzystanie Claude'a w determinowaniu celów ataków USA na Iran, w tym - w zbombardowaniu szkoły dla dziewcząt w Minabie, w którym to ataku zginęło ponad 160 osób, głównie dzieci.
+We wspomnianym dokumencie, Dario Amodei, współłzałożyciel i CEO Anthropica, mierzy się z szeregiem pytań i wątpliwości o etyczne aspekty budowy i wykorzystywania narzędzi opartych o sztuczną inteligencję. Pytania te trafiają na zresztą podatny grunt. W końcu Amodei pozycjonuje Anthropic jako twórcę etycznego AI, działającego w modelu *public benefit corporation* (organizacja, która poza celami czysto biznesowymi, działa na poczet dobra wspólnego). Jego filozofia rozwoju ma stanowić przeciwwagę dla OpenAI, które Amodei opuszczał nie chcąc ponoć zgodzić się na wątpliwe praktyki i standardy bezpieczeństwa wykorzystania modeli językowych. 
 
-Amodei nie jest w stanie potwierdzić, czy i w jakim stopniu LLMy Anthropica były w tych działaniach wykorzystywane ale zaznacza, że wykorzystanie ich modeli nie złamało żadnej z tzw "*Red Lines*", czyli kluczowych restrykcji, jakie organizacja nakłada na rządzących chcących korzystać z jej technologii. Te restrykcje to brak zgody na śledzenie własnych obywateli na masową skalę (*mass domestic surveillance*) oraz na wykorzystanie LLMów do operowania w pełni autonomiczną bronią (*fully autonomous weapon*).
+Moją uwagę przykuł fragment dokumentu Bloomberga, w którym reporterka pyta właśnie o zasadność i etyczne wątpliwości związane z wykorzystaniem modeli Anthropica w determinowaniu celów ataków USA na Iran w trwającej obecnie wojnie na Bliskim Wschodzie. W wywiadzie pojawia się wręcz sugestia, że mogły one być odpowiedzialne za zbombardowanie szkoły dla dziewcząt w Minabie w lutym 2026, w którego efekcie zginęło ponad 160 osób, głównie dzieci.
 
-Geneza powstania Anthropica i historia jego potyczek z rządem USA jest zresztą powszechnie znana (dla chętnych: link na dole wpisu). Firma pozycjonuje się na rynku jako twórca etycznego AI i działa modelu public benefit corporation.
+O ile Amodei nie odpowiada, czy i w jakim stopniu LLMy Anthropica brały udział tym konkretnym wydarzeniu, to zaznacza, że na pewno nie doszło do złamania kluczowych restrykcji (z tzw. *Red Lines*), jakie organizacja nakłada na podmioty implementujące jej rozwiązania. Te restrykcje sprowadzają się dwóch dobrych praktyk:
 
-### Dalsza część wypowiedzi Amodei mocno mnie przeraziła.
+1. Braku zgody Anthropica na śledzenie własnych obywateli na masową skalę (*mass domestic surveillance*),
+2. Braku zgody Anthropica na wykorzystanie LLMów do operowania w pełni autonomiczną bronią (*fully autonomous weapon*).
 
-CEO Anthropic mówi bowiem, że - tu parafrazuję - ostatecznie jest patriorą i chce, by to jego kraj uzyskał przewagę na polu walki, a wykorzystanie AI w konfliktach zbrojnych jest czymś na kształt nowego konfliktu zbrojeń i wszystkim powinno zależeć, by to ci dobrzy ("the good guys") mieli dostęp do najlepszych rozwiązań.
+### Amodei jest patriotą. Tylko czy to dobrze?
 
-<<<<[...] Czy na pewno reprezentują tę dobrą stronę w konflikcie z Iranem? Na pewno nie okazali się tymi dobrymi porywając prezydenta Wenezueli i przejmując kontrolę nad złożami ropy w pełni niezależnego państwa. Raczej nie wzbudzili zachwytu partnerów w NATO grożąc Danii przejęciem Grenlandii. Daleko im było do etycznie krystalicznych, gdy organizowali inwazjię na Irak i Afganistan w oparciu o sfałszowane dowody. Podobnie było z wojną w Wietnamie i z organizacją puczu w Iranie, którego konsekwencją było obalenie demokratycznie wybranego tam rządu.
+Linia obrony jest więc jasna. Człowiek podejmuje decyzje, nie AI więc człowiek bierze na siebie odpowiedzialność za konsekwencje swoich decyzji. I nawet byłbym w stanie przyjąć ją do wiadomości, gdyby nie to, co usłyszałem chwilę później. 
 
-Tylko, czy na pewno USA są krajem krzewiącym te demokratyczne eśli nawet założylibyśmy, że etyka wiąże się z pojęciem narodowości w aspekcie współdzielonych wartości, zobowiązań i przekonań  - choćby takich jak wolność, czy demogracja - to trudno uznać USA za państwo działające w ostatnich latach zgodnie z nimi. [...] >>>>>
+CEO Anthropic roztacza przed nami swój pogląd na miejsce modeli językowych jego organizacji  w formowaniu światowego porządku. Stwiedza, że wykorzystanie AI w konfliktach zbrojnych stanowi coś na kształt - parafrazuję - nowego wyścigu zbrojeń. A jako, że ostatecznie jest patriorą, to chce, by ci dobrzy, czyli USA, zdobyli przewagę na polu bitwy poprzez uzyskanie dostępu do najnowszych i najsilniejszych rozwiązań. 
 
-Dlatego narracja szefa Anthropic w tym aspekcie zupełnie nie trzyma się kupy.
+Tylko skąd założenie, że Ci dobrzy to USA? 
 
-I jasne, zdaje sobie sprawę z kompleksowości realiów w jakich żyjemy. Wiem też, jak infantylnie mogą brzmieć rozterki o etyce w biznesie i geopolityce - zwłaszcza w obliczu destabilizującej się sytuacji międzynarodowej i szalonego wyścigu technologicznego, jakiego jesteśmy świadkami.
+Czy na pewno reprezentują dobrą stronę w konflikcie z Iranem? W konflickie, który - o ile dobrze pamiętam - jest zwyczjnie nielegalny, bo prowadzony niezgodnie z amerykańską konstytucją (nie został zatwierdzony przez Kongress).  
 
-Tylko to nie ja prowadzę wartą 900 miliardów dolarów firmę odmieniając słowo etyka przez wszystkie przypadki, a jednocześnie umożliwiam wykorzystanie swojej technologii w nielegalnie prowadzonej wojnie.
+Patrząc wstecz, czy Stany Zjednoczone na pewno okazały się tymi dobrymi porywając prezydenta Wenezueli i przejmując kontrolę nad złożami ropy w pełni niezależnego państwa?  Bo na pewno nie były etycznie krystaliczne grożąc Danii inwazją na Grenlandię, czy wcześniej - rozpoczynając wojnę w Iraku i Afganistanie w oparciu o sfałszowane dowody. Również wojnę w Wietnamie, czy organizację puczu w Iranie, którego konsekwencją było obalenie demokratycznie wybranego tam rządu, trudno uznać za działania sił dobra. 
 
-Wspomniane:
+Zupełnie nie rozumiem więc argumentacji, w której pojęcie etyki łączy się z patriotyzmem. Gdyby nawet uznać, że łączą się one na poziomie dbałości o kolektywnie wyznawane wartości, zobowiązania i przekonania (np. za etyczne i patriotyczne uznać możnaby krzewienie wolności i demokracji), to trudno uznać ostatnie lata rządów w USA za przykład takiej dbałości. Każdy, kto śledzi sytuację społeczną i polityczną w Stanach i słyszał choćby o aferze gerrymanderingowej, świetnie o tym wie. 
+
+Dlatego moim zdaniem narracja szefa Anthropic w tym aspekcie zupełnie nie trzyma się kupy.
+
+I jasne, zdaje sobie sprawę z kompleksowości realiów w jakich żyjemy. Wiem też, jak infantylnie mogą brzmieć rozterki o etyce w biznesie i geopolityce - zwłaszcza w obliczu destabilizującej się sytuacji międzynarodowej i szalonego wyścigu technologicznego, jakiego jesteśmy świadkami. Ale to nie ja odmieniam słowo etyka przez wszystkie przypadki prowadzą absurdalnie wpływową organizację, a jednocześnie umożliwiam wykorzystanie swojej technologii w nielegalnie prowadzonej wojnie.
+
+PS. Materiały Bloomberga na YT polecam bez zająknięcia. Świetne, pogłębione, nieefekciarskie dziennikarstwo. 
+
+Warto zajrzeć:
 
 - https://youtu.be/v1wZwxY3CMg?si=_8PQG0StWC0XfC1k
 - https://www.anthropic.com/news/statement-department-of-war
 - https://www.anthropic.com/news/fable-mythos-access
 - https://en.wikipedia.org/wiki/Benefit_corporation
 - https://pl.wikipedia.org/wiki/Atak_na_szko%C5%82%C4%99_w_Minabie
+- https://podcasts.apple.com/pl/podcast/podkast-ameryka%C5%84ski/id1535807947?i=1000768078616
