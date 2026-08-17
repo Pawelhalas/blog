@@ -37,6 +37,11 @@ for (const post of sortedPosts) {
 }
 
 const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
+
+// PLACEHOLDER - Pawel is writing the real two-sentence summary. Replace the
+// string below; nothing else needs touching.
+const aboutSummary =
+  "[Placeholder] Dwa zdania o mnie trafią tutaj — Paweł podeśle treść.";
 ---
 
 <Layout title="Więcej hałasu, mniej szumu">
@@ -54,7 +59,7 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
 
       The RSS link is one of rule 2's four sanctioned accent uses.
     */}
-    <section id="hero" class="border-border border-b pt-10 pb-10">
+    <section id="hero" class="pt-10 pb-12">
       <h1 class="max-w-[46ch] text-3xl leading-tight font-medium text-balance">
         {site.description}
       </h1>
@@ -68,17 +73,26 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
       </a>
     </section>
 
+    {/*
+      About: a short standing summary, not a post. PLACEHOLDER COPY - Pawel is
+      writing the real two sentences. Kept in one constant at the top of this
+      file so it is a single obvious thing to replace.
+    */}
+    <section id="about" class="pb-12">
+      <h2 class="font-data mb-3 text-[11px] lowercase tracking-[0.12em]">
+        {t.nav.about}
+      </h2>
+      <p class="text-muted-foreground max-w-[62ch] leading-relaxed">
+        {aboutSummary}
+      </p>
+    </section>
+
     {
       featuredPosts.length > 0 && (
-        <section id="featured" class="pt-10">
-          <div class="border-border flex items-baseline justify-between border-b pb-2">
-            <h2 class="font-data text-[11px] lowercase tracking-[0.12em]">
-              {t.home.featured}
-            </h2>
-            <span class="font-data text-muted-foreground text-[11px] tabular-nums">
-              {featuredPosts.length}
-            </span>
-          </div>
+        <section id="featured" class="pb-8">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+            {t.home.featured}
+          </h2>
           <ul>
             {featuredPosts.map(data => (
               <Card variant="h3" {...data} />
@@ -90,15 +104,10 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
 
     {
       recentPosts.length > 0 && (
-        <section id="recent-posts" class="pt-10">
-          <div class="border-border flex items-baseline justify-between border-b pb-2">
-            <h2 class="font-data text-[11px] lowercase tracking-[0.12em]">
-              {t.home.recentPosts}
-            </h2>
-            <span class="font-data text-muted-foreground text-[11px] tabular-nums">
-              {recentPosts.length}
-            </span>
-          </div>
+        <section id="recent-posts" class="pb-8">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+            {t.home.recentPosts}
+          </h2>
           <ul>
             {recentPosts.slice(0, postsConfig.perIndex).map(data => (
               <Card variant="h3" {...data} />
@@ -125,20 +134,16 @@ const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
     */}
     {
       tags.length > 0 && (
-        <section id="tags" class="pt-10 pb-4">
-          <div class="border-border flex items-baseline justify-between border-b pb-2">
-            <h2 class="font-data text-[11px] lowercase tracking-[0.12em]">
-              {t.nav.tags}
-            </h2>
-            <span class="font-data text-muted-foreground text-[11px] tabular-nums">
-              {tags.length}
-            </span>
-          </div>
+        <section id="tags" class="pb-10">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+            {t.nav.tags}
+          </h2>
           {/*
             The frame is closed on all four sides so an incomplete final row
             (5 tags across 3 columns) does not leave a ragged bottom-right edge.
+            The whole tag treatment is due to be reworked next.
           */}
-          <ul class="border-hairline-subtle mt-4 grid grid-cols-2 border-[0.5px] sm:grid-cols-3">
+          <ul class="border-hairline-subtle mt-3 grid grid-cols-2 border-[0.5px] sm:grid-cols-3">
             {tags.map(({ tag, tagName }) => (
               <li class="border-hairline-subtle border-e-[0.5px] border-b-[0.5px]">
                 <a

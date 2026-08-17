@@ -18,11 +18,11 @@ const { title, description, ...props } = data;
   every row. The link wraps the title only - wrapping the whole row would
   make the description part of the link text for screen readers.
 
-  The row separator is the subtle hairline; section rules use the strong one,
-  so the two tiers stay distinguishable.
+  Rows carry no separator: Pawel asked for the dividers to go, so rows are
+  held apart by spacing and the date column's alignment alone.
 */}
 <li
-  class="border-hairline-subtle grid grid-cols-[3.75rem_1fr] gap-x-4 border-b-[0.5px] py-4 sm:grid-cols-[4.5rem_1fr] sm:gap-x-8"
+  class="grid grid-cols-[3.75rem_1fr] gap-x-4 py-4 sm:grid-cols-[4.5rem_1fr] sm:gap-x-8"
 >
   <Datetime {...props} variant="column" class="pt-[0.4rem]" />
   <div>
