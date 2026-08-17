@@ -149,11 +149,16 @@ datetime, or push again after the date passes.
 
 ### Direction
 
-Muji supplies the system: restraint, no ornament, function-first typography. Shimokitazawa /
-Akasaka / Nakano supply the materials: warm paper tones, faded signage colour, small densely-set
-labels, worn rather than polished.
+Muji supplies the system: restraint, function-first typography. Shimokitazawa / Akasaka / Nakano
+supply the materials: warm paper tones, faded signage colour, small densely-set labels, worn
+rather than polished.
 
 Explicitly **not** neon, cyberpunk, synthwave, or glow effects.
+
+**Amended 2026-08-13.** The direction used to read "no ornament". It now allows exactly one
+ornament — the distorted wordmark (rule 8) — and nothing else. The page is quiet so that the
+wordmark is not; a second ornament anywhere would spend what makes the first one work. Treat
+"no ornament" as still binding everywhere except that one object.
 
 Governing tension: Muji is emptiness, those neighbourhoods are density. The page is airy
 everywhere **except** the tag index, which is deliberately packed. One dense block reads as
@@ -186,10 +191,15 @@ flourishes only. Reach for text secondary for any real content.
 ### Rules
 
 1. **Warm neutrals only.** No blue-grey, no pure `#000` or `#FFF`. Background is paper or ink.
-2. **One accent, ~4 uses per page maximum** — wordmark bar, RSS link, active tag, current nav
-   item. Never apply it to body links wholesale.
-3. **Structure from hairlines and alignment.** 0.5px rules. No cards, no background fills, no
-   shadows, no rounded chips, no border-radius above 2px.
+2. **One accent, ~4 uses per page maximum** — RSS link, active tag, current nav item, and the
+   three distortion bands in the wordmark (which count as one use, being one object). Never
+   apply it to body links wholesale. Revised 2026-08-13: the 3px wordmark bar is gone, and the
+   distortion took its slot.
+3. **Structure from alignment and whitespace, with hairlines used sparingly.** No cards, no
+   background fills, no shadows, no rounded chips, no border-radius above 2px. Revised
+   2026-08-13: the horizontal rules were removed from the page body — section labels and the
+   date column now carry the structure. Hairlines survive only as page chrome (header, footer)
+   and in the tag lattice. Where a rule is used it is 0.5px.
 4. **Two typefaces, two jobs.** Neutral sans for anything read as prose. Monospace strictly for
    machine data — dates, counts, tag labels, footer. **Never set body copy in monospace.**
 5. **Dates in a fixed-width left column** on every index page. Format `DD·MM·YY`, middle dot
@@ -198,8 +208,25 @@ flourishes only. Reach for text secondary for any real content.
    printed ticket.
 7. **Body copy ≥18px, measure 65–75ch, line-height ~1.6.** This is a reading site; it is the one
    rule that outranks aesthetics.
-8. **Wordmark** = 3px vermilion vertical bar + lowercase monospace name.
+8. **Wordmark** = the site name in lowercase monospace, distorted. Rewritten 2026-08-13,
+   replacing the 3px vermilion bar. Eight horizontal bands are clipped from the word and
+   stacked over an undistorted copy; three of them carry the accent. Implementation and the
+   reasoning behind every constant live in `src/styles/distortion.css`. Two states:
+   - **Animated** (hero, default): all bands tear together on 8 beats per 8s cycle,
+     displacement to 44px, with ±3px jitter between beats so the word is never still.
+   - **Calm** (header mark always; hero when the reader switches the noise off; anyone whose
+     OS requests reduced motion): the same worst frame of that cycle scaled to 13.5%, so bands
+     shift 3.5–6px. Readable, visibly off-register, accent bands lit rather than flashing.
+
+   The mark is the hero stopped, not a lookalike — same frame, same object. It runs at
+   `--amp: .35` because it is a navigation control on every page rather than a statement.
+   **Switching the noise off must always reduce it**, never intensify it: the site is called
+   *less noise*.
 9. Sentence case throughout. No ALL CAPS headings.
+10. **Motion is opt-out and safety-bounded.** The 8s cycle is not a taste decision: at 4s the
+    bursts fired twice a second, close to WCAG 2.3.1's three-flashes-per-second threshold. Any
+    change to the timing has to keep bursts at or below one per second. `prefers-reduced-motion`
+    must always resolve to a static state.
 
 ### Work order
 
@@ -225,12 +252,10 @@ Do these in sequence. Stop after each and show a preview.
    **propose how before implementing.**
 9. **A11y + focus states.** **Not designed yet.** Keyboard path through nav, search, tag links.
 
-**Optional, after step 9 — distinctive hero.** Pawel flagged on 2026-08-05 that he may want to
-rebuild the wordmark, or drop it entirely in favour of a distinctive hero section. Not scheduled
-and not a defect in step 4 — revisit once the whole restyle is in place and the site can be judged
-as a whole. **Not designed yet — propose before building.** If the wordmark goes, rule 8 (the 3px
-vermilion bar) and the accent budget in rule 2 both need rewriting, since the bar is one of the
-four sanctioned accent uses.
+**Distinctive hero — done 2026-08-13.** Was optional and undesigned; built after step 5 rather
+than after step 9, because Pawel wanted it before the remaining index work. The 3px vermilion bar
+is gone, replaced by the distorted wordmark described in rule 8. Rules 2, 3 and 8 were rewritten
+to match, and rule 10 added. The corresponding backlog entry is closed.
 
 ### Quality gate before shipping
 
@@ -303,8 +328,6 @@ Wanted, but not scheduled and not designed. Establish scope before building.
   list, `/posts`, tag detail pages, or all three — the spec currently asks all of them to share one
   date-column pattern, so a change to one is a change to the system.
 
-- **Wordmark / main header redesign.** Reaffirmed 2026-08-13. Already recorded in the work order
-  as *"Optional, after step 9 — distinctive hero"* — see that entry for the knock-on effects, since
-  dropping the wordmark invalidates rule 8 and frees one of the four sanctioned accent uses in
-  rule 2. Listed here so it is visible alongside the other unscheduled work.
-  **Not designed yet — propose before building.**
+- ~~**Wordmark / main header redesign.**~~ **Done 2026-08-13.** Built as the distorted wordmark;
+  see rule 8 and `src/styles/distortion.css`. Left here rather than deleted so the decision trail
+  stays readable.

@@ -8,6 +8,7 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
+import NoiseWord from "@/components/NoiseWord.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { slugifyStr } from "@/utils/slugify";
@@ -59,18 +60,39 @@ const aboutSummary =
 
       The RSS link is one of rule 2's four sanctioned accent uses.
     */}
-    <section id="hero" class="pt-10 pb-12">
-      <h1 class="max-w-[46ch] text-3xl leading-tight font-medium text-balance">
-        {site.description}
-      </h1>
-      <a
-        href={rssHref}
-        class="text-accent font-data mt-5 inline-flex items-center gap-2 text-[11px] tracking-[0.12em]"
-        aria-label="RSS"
+    {/*
+      The hero is the site name as noise you can switch off. The button sits
+      top-right of the section; its labels live in the markup so the wording
+      stays here rather than in the script.
+    */}
+    <section id="hero" class="relative pt-12 pb-14">
+      <div class="flex justify-end">
+        <button
+          type="button"
+          data-noise-btn
+          data-label-off="wyłącz szum"
+          data-label-on="włącz szum"
+          aria-pressed="false"
+          class="font-data border-border hover:text-accent hover:border-accent rounded-[2px] border px-2.5 py-1.5 text-[11px] tracking-[0.08em]"
+        >
+          wyłącz szum
+        </button>
+      </div>
+      <h1
+        class="mt-6 text-center text-[clamp(2.25rem,9vw,4.5rem)] sm:mt-4"
       >
-        <IconRss width={14} height={14} class="rtl:-rotate-90" />
-        RSS
-      </a>
+        <NoiseWord variant="hero" />
+      </h1>
+      <div class="mt-8 flex justify-center">
+        <a
+          href={rssHref}
+          class="text-accent font-data inline-flex items-center gap-2 text-[11px] tracking-[0.12em]"
+          aria-label="RSS"
+        >
+          <IconRss width={14} height={14} class="rtl:-rotate-90" />
+          RSS
+        </a>
+      </div>
     </section>
 
     {/*

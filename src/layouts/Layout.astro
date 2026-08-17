@@ -112,6 +112,12 @@ const rssHref = getRelativeLocaleUrl(
         root?.classList.toggle("dark", theme === "dark");
         // Expose value so theme.ts can skip re-detection.
         window.__theme = { value: theme };
+
+        // Same trick for the wordmark distortion: set it before paint so a
+        // reader who switched the noise off never sees a frame of it moving.
+        const noise = localStorage.getItem("noise") ?? "on";
+        root?.setAttribute("data-noise", noise);
+        window.__noise = { value: noise };
       })();
     </script>
 
@@ -123,6 +129,7 @@ const rssHref = getRelativeLocaleUrl(
     <slot />
     <script>
       import "@/scripts/theme";
+      import "@/scripts/noise";
     </script>
   </body>
 </html>
