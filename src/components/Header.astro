@@ -7,6 +7,7 @@ import IconSearch from "@/assets/icons/IconSearch.svg";
 import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconX from "@/assets/icons/IconX.svg";
 import LinkButton from "./LinkButton.astro";
+import NoiseWord from "./NoiseWord.astro";
 import { stripBase, stripLocale } from "@/utils/withBase";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
@@ -47,18 +48,14 @@ const isActive = (path: string) => {
   <div
     class="border-border bg-background relative flex w-full items-baseline justify-between border-b py-4 sm:items-center sm:py-6"
   >
-    <!-- Wordmark: 3px vermilion bar + lowercase mono name. The bar is
-         decorative; the accessible name comes from the text beside it. -->
+    <!-- The mark is the hero's own distortion held still, never animated.
+         See src/styles/distortion.css for why it is the same frame. -->
     <a
       href={getRelativeLocaleUrl(locale, "")}
-      class="absolute flex items-stretch gap-2.5 py-1 whitespace-nowrap sm:static sm:my-auto"
+      class="absolute py-1 text-lg whitespace-nowrap sm:static sm:my-auto sm:text-xl"
+      aria-label={site.title}
     >
-      <span aria-hidden="true" class="bg-accent w-[3px] shrink-0"></span>
-      <span
-        class="font-data text-xl leading-8 font-medium lowercase sm:text-2xl sm:leading-none"
-      >
-        {site.title}
-      </span>
+      <NoiseWord variant="mark" />
     </a>
     <nav
       id="nav-menu"

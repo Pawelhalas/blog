@@ -6,14 +6,16 @@ import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import Socials from "@/components/Socials.astro";
 import Card from "@/components/Card.astro";
 import LinkButton from "@/components/LinkButton.astro";
+import NoiseWord from "@/components/NoiseWord.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
+import { getUniqueTags } from "@/utils/getUniqueTags";
+import { slugifyStr } from "@/utils/slugify";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
-const { socials, posts: postsConfig } = config;
+const { site, posts: postsConfig } = config;
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
@@ -23,6 +25,22 @@ const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const recentPosts = sortedPosts.filter(({ data }) => !data.featured);
 const homePath = getRelativeLocaleUrl(locale, "");
+
+// Tag grid: getUniqueTags gives label + slug but no counts, so tally them here
+// off the already-filtered post list.
+const tags = getUniqueTags(posts);
+const tagCounts = new Map<string, number>();
+for (const post of sortedPosts) {
+  for (const tag of post.data.tags) {
+    const slug = slugifyStr(tag);
+    tagCounts.set(slug, (tagCounts.get(slug) ?? 0) + 1);
+  }
+}
+
+const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
+
+const aboutSummary =
+  "Cześć! Mam na imię Paweł i jestem product managerem z Wrocławia. Zapisuję tu swoje obserwacje i doświadczenia w ramach walki o jasność umysłu w świecie pełnym komunikacyjnego szumu i AI slopu.";
 ---
 
 <Layout title="Więcej hałasu, mniej szumu">
@@ -33,63 +51,66 @@ const homePath = getRelativeLocaleUrl(locale, "");
     data-home-path={homePath}
     class="app-layout"
   >
-    <section id="hero" class="border-border border-b pt-8 pb-6">
-      <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
-        Mingalaba
-      </h1>
-      <a
-        target="_blank"
-        href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
-        class="inline-block"
-        aria-label="RSS Feed"
-        title="RSS Feed"
-      >
-        <IconRss
-          width={20}
-          height={20}
-          class="stroke-accent scale-125 stroke-3 rtl:-rotate-90"
-        />
-        <span class="sr-only">RSS Feed</span>
-      </a>
+    {/*
+      Hero. Rule 7 wants prose in the sans face; the blurb doubles as the page's
+      h1, which the homepage would otherwise lack entirely. Capped at 46ch per
+      the spec - site.description is 41, so it fits without truncation.
 
-      <p>
-        AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro
-        blog theme. This theme follows best practices and provides accessibility
-        out of the box. Light and dark mode are supported by default. Moreover,
-        additional color schemes can also be configured.
-      </p>
-      <p class="mt-2">
-        Read the blog posts or check{" "}
-        <LinkButton
-          class="hover:text-accent underline decoration-dashed underline-offset-4"
-          href="https://github.com/satnaing/astro-paper#readme"
+      The RSS link is one of rule 2's four sanctioned accent uses.
+    */}
+    {/*
+      The hero is the site name as noise you can switch off. The button sits
+      top-right of the section; its labels live in the markup so the wording
+      stays here rather than in the script.
+    */}
+    <section id="hero" class="relative pt-12 pb-14">
+      <div class="flex justify-end">
+        <button
+          type="button"
+          data-noise-btn
+          data-label-off="wyłącz szum"
+          data-label-on="włącz szum"
+          aria-pressed="false"
+          class="font-data border-border hover:text-accent hover:border-accent rounded-[2px] border px-2.5 py-1.5 text-[11px] tracking-[0.08em]"
         >
-          README
-        </LinkButton>{" "}
-        for more info.
+          wyłącz szum
+        </button>
+      </div>
+      <h1
+        class="mt-6 text-center text-[clamp(2.25rem,9vw,4.5rem)] sm:mt-4"
+      >
+        <NoiseWord variant="hero" />
+      </h1>
+      <div class="mt-8 flex justify-center">
+        <a
+          href={rssHref}
+          class="text-accent font-data inline-flex items-center gap-2 text-[11px] tracking-[0.12em]"
+          aria-label="RSS"
+        >
+          <IconRss width={14} height={14} class="rtl:-rotate-90" />
+          RSS
+        </a>
+      </div>
+    </section>
+
+    {/*
+      About: a short standing summary, not a post. PLACEHOLDER COPY - Pawel is
+      writing the real two sentences. Kept in one constant at the top of this
+      file so it is a single obvious thing to replace.
+    */}
+    <section id="about" class="pb-12">
+      <h2 class="font-data mb-3 text-[11px] lowercase tracking-[0.12em]">
+        {t.nav.about}
+      </h2>
+      <p class="text-muted-foreground max-w-[62ch] leading-relaxed">
+        {aboutSummary}
       </p>
-      {
-        socials.length > 0 && (
-          <div class="mt-4 flex max-sm:flex-col sm:items-center">
-            <div class="me-2 mb-1 whitespace-nowrap sm:mb-0">
-              {t.home.socialLinks}:
-            </div>
-            <Socials />
-          </div>
-        )
-      }
     </section>
 
     {
       featuredPosts.length > 0 && (
-        <section
-          id="featured"
-          class:list={[
-            "pt-12 pb-6",
-            { "border-border border-b": recentPosts.length > 0 },
-          ]}
-        >
-          <h2 class="text-2xl font-semibold tracking-wide">
+        <section id="featured" class="pb-8">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
             {t.home.featured}
           </h2>
           <ul>
@@ -103,8 +124,8 @@ const homePath = getRelativeLocaleUrl(locale, "");
 
     {
       recentPosts.length > 0 && (
-        <section id="recent-posts" class="pt-12 pb-6">
-          <h2 class="text-2xl font-semibold tracking-wide">
+        <section id="recent-posts" class="pb-8">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
             {t.home.recentPosts}
           </h2>
           <ul>
@@ -112,16 +133,54 @@ const homePath = getRelativeLocaleUrl(locale, "");
               <Card variant="h3" {...data} />
             ))}
           </ul>
+          <div class="mt-6">
+            <LinkButton
+              href={getRelativeLocaleUrl(locale, "posts")}
+              class="font-data hover:text-accent inline-flex items-center gap-2 text-[11px] tracking-[0.12em]"
+            >
+              {t.home.allPosts}
+              <IconArrowRight width={14} height={14} class="rtl:-rotate-180" />
+            </LinkButton>
+          </div>
         </section>
       )
     }
 
-    <div class="my-8 text-center">
-      <LinkButton href={getRelativeLocaleUrl(locale, "posts")}>
-        {t.home.allPosts}
-        <IconArrowRight class="inline-block rtl:-rotate-180" />
-      </LinkButton>
-    </div>
+    {/*
+      The tag grid is the one deliberately dense block on the page - a hairline
+      lattice rather than chips, since rule 3 rules out fills and radii. It will
+      read as sparse until the tag vocabulary grows; that is expected, not a
+      layout bug.
+    */}
+    {
+      tags.length > 0 && (
+        <section id="tags" class="pb-10">
+          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+            {t.nav.tags}
+          </h2>
+          {/*
+            The frame is closed on all four sides so an incomplete final row
+            (5 tags across 3 columns) does not leave a ragged bottom-right edge.
+            The whole tag treatment is due to be reworked next.
+          */}
+          <ul class="border-hairline-subtle mt-3 grid grid-cols-2 border-[0.5px] sm:grid-cols-3">
+            {tags.map(({ tag, tagName }) => (
+              <li class="border-hairline-subtle border-e-[0.5px] border-b-[0.5px]">
+                <a
+                  href={getRelativeLocaleUrl(locale, `tags/${tag}`)}
+                  class="font-data hover:text-accent flex items-baseline justify-between gap-2 px-3 py-2.5 text-[11px] tracking-[0.08em]"
+                >
+                  <span class="truncate">{tagName}</span>
+                  <span class="text-muted-foreground tabular-nums">
+                    {tagCounts.get(tag) ?? 0}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </main>
   <Footer />
 </Layout>

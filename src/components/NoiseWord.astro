@@ -1,0 +1,38 @@
+---
+/**
+ * The site name rendered as eight clipped bands over an undistorted copy.
+ *
+ * Only the base copy carries the text for assistive tech and selection; the
+ * eight overlays are aria-hidden, so a screen reader reads "mniej szumu" once.
+ * Styling lives in src/styles/distortion.css.
+ */
+import config from "@/config";
+
+type Props = {
+  /** hero runs the animation at full amplitude; mark is always calm at 0.35 */
+  variant?: "hero" | "mark";
+  class?: string;
+};
+
+const { variant = "hero", class: className = "" } = Astro.props;
+const label = config.site.title;
+const bands = [1, 2, 3, 4, 5, 6, 7, 8];
+---
+
+<span
+  class:list={[
+    "noise-word lowercase",
+    variant === "mark" && "is-calm",
+    className,
+  ]}
+  style={variant === "mark" ? "--amp:.35" : "--amp:1"}
+>
+  {
+    bands.map(b => (
+      <span class={`nb nb${b}`} aria-hidden="true">
+        {label}
+      </span>
+    ))
+  }
+  <span class="nb-base">{label}</span>
+</span>
