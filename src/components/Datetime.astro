@@ -12,6 +12,12 @@ dayjs.extend(timezone);
 type Props = {
   class?: string;
   size?: "sm" | "lg";
+  /**
+   * "inline" keeps AstroPaper's icon + long date, still used on the post page.
+   * "column" is the index-page treatment required by design rule 5: a bare
+   * DD·MM·YY for the fixed-width left column, no icon.
+   */
+  variant?: "inline" | "column";
   pubDatetime: string | Date;
   timezone?: string;
   modDatetime?: string | Date | null;
@@ -21,6 +27,7 @@ const {
   pubDatetime,
   modDatetime,
   size = "sm",
+  variant = "inline",
   class: className = "",
   timezone: postTimezone,
 } = Astro.props;
@@ -36,29 +43,42 @@ const datetime = dayjs(isModified ? modDatetime : pubDatetime).tz(
 const date = datetime.format("D MMM, YYYY");
 ---
 
-<div
-  class:list={[
-    "text-muted-foreground font-data flex items-center gap-x-2",
-    className,
-  ]}
->
-  <IconCalendar
-    class:list={[
-      "inline-block size-6 min-w-5.5",
-      { "scale-90": size === "sm" },
-    ]}
-  />
-  {
-    isModified && (
-      <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
-        {t.post.updatedAt}:
-      </span>
-    )
-  }
-  <time
-    class:list={["text-sm", { "sm:text-base": size === "lg" }]}
-    datetime={datetime.toISOString()}
-  >
-    {date}
-  </time>
-</div>
+{
+  variant === "column" ? (
+    <time
+      class:list={[
+        "font-data text-muted-foreground text-[11px] tracking-[0.08em] tabular-nums",
+        className,
+      ]}
+      datetime={datetime.toISOString()}
+      title={isModified ? `${t.post.updatedAt}: ${date}` : date}
+    >
+      {datetime.format("DD·MM·YY")}
+    </time>
+  ) : (
+    <div
+      class:list={[
+        "text-muted-foreground font-data flex items-center gap-x-2",
+        className,
+      ]}
+    >
+      <IconCalendar
+        class:list={[
+          "inline-block size-6 min-w-5.5",
+          { "scale-90": size === "sm" },
+        ]}
+      />
+      {isModified && (
+        <span class:list={["text-sm", { "sm:text-base": size === "lg" }]}>
+          {t.post.updatedAt}:
+        </span>
+      )}
+      <time
+        class:list={["text-sm", { "sm:text-base": size === "lg" }]}
+        datetime={datetime.toISOString()}
+      >
+        {date}
+      </time>
+    </div>
+  )
+}
