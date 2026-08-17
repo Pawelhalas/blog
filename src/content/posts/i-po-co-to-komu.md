@@ -5,9 +5,7 @@ pubDatetime: 2026-08-11T09:00:00Z
 tags:
   - product management
   - AI
-  - mniej_szumu
   - projekty
-  - pisanie
 ---
 
 ![Dzieciak ogląda mecz Ligi Mistrzów przed telewizorem](../../assets/images/kid-watching-champions-league-violet.png)

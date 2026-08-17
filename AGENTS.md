@@ -116,6 +116,27 @@ Authoritative source: `src/content.config.ts`. Do not invent fields.
 There is **no `lang` field**. Mixed PL/EN posting requires editing the schema in
 `src/content.config.ts` first. `src/i18n/` exists but ships `en.ts` only.
 
+### Tag vocabulary
+
+Agreed 2026-08-13. Tags are navigation, not labels — every tag is a public URL and a page that
+has to justify existing.
+
+1. **Lowercase, except proper nouns and acronyms.** `etyka`, `projekty` — but `AI`, `Anthropic`,
+   `Claude Code`. Display casing is free: `getUniqueTags` keeps `tagName` for display and derives
+   `tag` for the URL separately, so casing never affects the slug.
+2. **Spaces, never underscores.** `slugifyStr` turns spaces into hyphens but passes `_` through
+   untouched, so `mniej_szumu` produced `/tags/mniej_szumu/` while every other tag used hyphens.
+3. **Nouns, not phrases.** A tag is a bucket.
+4. **No tag that applies to every post.** A tag on everything partitions nothing — this is why the
+   site-name tag was dropped.
+5. **Polish by default; English only where it is genuinely the term of art** (`product management`
+   stays English because that is what Polish PMs say; `etyka` does not become "ethics").
+6. **2–3 tags per post, and prefer reusing an existing tag over minting a new one.** A tag earns
+   its place at roughly three posts. This one is the difference between the tag grid becoming the
+   dense block the design spec wants and staying a wall of dead ends.
+
+Renaming a published tag breaks its URL, so settle a tag before it ships rather than after.
+
 ### Scheduled posts
 
 A `pubDatetime` in the future hides the post until that time — but Cloudflare only rebuilds on
