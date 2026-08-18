@@ -43,7 +43,7 @@ const t = useTranslations(locale);
   <Breadcrumb />
 
   <Main
-    pageTitle={`${t.pages.tagTitle}: ${tagName}`}
+    pageTitle={[t.pages.tagTitle, tagName]}
     pageDesc={`${t.pages.tagDesc} "${tagName}".`}
   >
     <ul>

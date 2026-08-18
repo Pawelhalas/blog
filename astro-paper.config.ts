@@ -20,7 +20,9 @@ export default defineAstroPaperConfig({
   features: {
     lightAndDarkMode: true,
     dynamicOgImage: true,
-    showArchives: true,
+    // Off: archives duplicates /posts. The page self-rewrites to 404, the
+    // sitemap filter drops it, and the nav item hides. Flip back to restore.
+    showArchives: false,
     showBackButton: true,
     editPost: {
       enabled: false,
