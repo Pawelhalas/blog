@@ -118,7 +118,16 @@ const aboutSummary =
           densities={[1, 2]}
           class="aspect-square w-full object-cover"
         />
-        <p class="text-muted-foreground max-w-[62ch] leading-relaxed">
+        {/*
+          Optical alignment: a paragraph's box top sits above its first cap by
+          half the leading plus the ascender-to-cap gap - measured at 7.64px
+          for IBM Plex Sans at 16px/26px, which is 0.478em. Expressed in em so
+          it holds if the type scale changes. Without it the text reads as
+          sitting low against the photo's hard top edge.
+        */}
+        <p
+          class="text-muted-foreground mt-[-0.478em] max-w-[62ch] leading-relaxed"
+        >
           {aboutSummary}
         </p>
       </div>
