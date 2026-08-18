@@ -22,7 +22,7 @@
  * because it is a navigation control on every page rather than a statement.
  */
 .noise-word{position:relative;display:inline-block;white-space:nowrap;font-family:var(--font-data);font-weight:500;letter-spacing:-.02em;line-height:1.15;color:var(--foreground);--amp:1}
-.noise-word .nb{position:absolute;inset:0;color:var(--foreground)}
+.noise-word .nb{position:absolute;inset:0;color:var(--foreground);user-select:none;-webkit-user-select:none}
 .noise-word .nb-base{position:relative}
 .noise-word .nb1{clip-path:inset(0.0% 0 87.5% 0);animation:noiseband1 8s steps(1) infinite}
 .noise-word .nb2{clip-path:inset(12.5% 0 75.0% 0);animation:noiseband2 8s steps(1) infinite;color:var(--accent)}

@@ -26,9 +26,22 @@ const backUrl = config.features.showBackButton
     Section headings only - post titles have their own h1 in the post page and
     are deliberately left untouched, since lowercasing and distorting a title
     the author wrote would mangle their content.
+
+    The tuple form splits the heading into the site's own label and a piece of
+    content it does not own: "tag: AI" lowercases "tag" but leaves the tag name
+    as the tag vocabulary spells it.
   */}
   <h1 class="text-2xl sm:text-3xl">
-    <NoiseWord variant="heading" text={String(pageTitle)} />
+    {
+      Array.isArray(pageTitle) ? (
+        <>
+          <NoiseWord variant="heading" text={`${pageTitle[0]}:`} />{" "}
+          <NoiseWord variant="heading" text={pageTitle[1]} preserveCase />
+        </>
+      ) : (
+        <NoiseWord variant="heading" text={pageTitle} />
+      )
+    }
   </h1>
   <p class="mt-2 mb-6 italic">{pageDesc}</p>
   <slot />

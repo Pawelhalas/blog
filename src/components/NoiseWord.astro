@@ -11,12 +11,17 @@
  *   mark    - permanently calm, 0.35 (17px)
  *   heading - permanently calm, 0.5 (24-30px page headings)
  *   nav     - clean until hovered, focused or current, then calm at 0.3 (14px)
- *   crumb   - same as nav but 0.22, for 14px breadcrumbs
  */
 import config from "@/config";
 
 type Props = {
-  variant?: "hero" | "mark" | "heading" | "nav" | "crumb";
+  variant?: "hero" | "mark" | "heading" | "nav";
+  /**
+   * Skip the lowercasing. Used for content the site does not own - a tag name
+   * keeps the casing the tag vocabulary gives it (AI, Anthropic), even inside
+   * an otherwise lowercased heading.
+   */
+  preserveCase?: boolean;
   /** Defaults to the site title. */
   text?: string;
   class?: string;
@@ -25,17 +30,18 @@ type Props = {
 const {
   variant = "hero",
   text = config.site.title,
+  preserveCase = false,
   class: className = "",
 } = Astro.props;
 
 const bands = [1, 2, 3, 4, 5, 6, 7, 8];
 
-const amp = { hero: "1", mark: ".35", heading: ".5", nav: ".3", crumb: ".22" }[variant];
-const stateClass = { hero: "", mark: "is-calm", heading: "is-calm", nav: "is-nav", crumb: "is-nav" }[variant];
+const amp = { hero: "1", mark: ".35", heading: ".5", nav: ".3" }[variant];
+const stateClass = { hero: "", mark: "is-calm", heading: "is-calm", nav: "is-nav" }[variant];
 ---
 
 <span
-  class:list={["noise-word lowercase", stateClass, className]}
+  class:list={["noise-word", preserveCase ? "normal-case" : "lowercase", stateClass, className]}
   style={`--amp:${amp}`}
 >
   {
