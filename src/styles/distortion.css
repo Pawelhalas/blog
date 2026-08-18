@@ -60,3 +60,19 @@
   .noise-word .nb7{animation:none;transform:translate(calc(-3.5px*var(--amp)),calc(-0.3px*var(--amp)));opacity:1}
   .noise-word .nb8{animation:none;transform:translate(calc(-5.8px*var(--amp)),calc(0.1px*var(--amp)))}
 }
+
+/* Nav variant. Clean by default; the same calm frame appears on hover, on
+   keyboard focus, and permanently on the current page. Static - it snaps,
+   it does not animate, matching the steps(1) feel of the rest.
+   Focus is included deliberately: hover alone would hide the effect from
+   anyone navigating by keyboard. */
+.noise-word.is-nav .nb{animation:none;transform:none}
+.noise-word.is-nav .nb2,.noise-word.is-nav .nb5,.noise-word.is-nav .nb7{opacity:0}
+a:hover .noise-word.is-nav .nb1,a:focus-visible .noise-word.is-nav .nb1,a[aria-current] .noise-word.is-nav .nb1{transform:translate(calc(-5.3px*var(--amp)),calc(-0.4px*var(--amp)))}
+a:hover .noise-word.is-nav .nb2,a:focus-visible .noise-word.is-nav .nb2,a[aria-current] .noise-word.is-nav .nb2{transform:translate(calc(5.8px*var(--amp)),calc(-0.3px*var(--amp)));opacity:1}
+a:hover .noise-word.is-nav .nb3,a:focus-visible .noise-word.is-nav .nb3,a[aria-current] .noise-word.is-nav .nb3{transform:translate(calc(-3.5px*var(--amp)),calc(0.0px*var(--amp)))}
+a:hover .noise-word.is-nav .nb4,a:focus-visible .noise-word.is-nav .nb4,a[aria-current] .noise-word.is-nav .nb4{transform:translate(calc(4.1px*var(--amp)),calc(0.4px*var(--amp)))}
+a:hover .noise-word.is-nav .nb5,a:focus-visible .noise-word.is-nav .nb5,a[aria-current] .noise-word.is-nav .nb5{transform:translate(calc(-5.7px*var(--amp)),calc(0.4px*var(--amp)));opacity:1}
+a:hover .noise-word.is-nav .nb6,a:focus-visible .noise-word.is-nav .nb6,a[aria-current] .noise-word.is-nav .nb6{transform:translate(calc(-5.5px*var(--amp)),calc(0.4px*var(--amp)))}
+a:hover .noise-word.is-nav .nb7,a:focus-visible .noise-word.is-nav .nb7,a[aria-current] .noise-word.is-nav .nb7{transform:translate(calc(-3.5px*var(--amp)),calc(-0.3px*var(--amp)));opacity:1}
+a:hover .noise-word.is-nav .nb8,a:focus-visible .noise-word.is-nav .nb8,a[aria-current] .noise-word.is-nav .nb8{transform:translate(calc(-5.8px*var(--amp)),calc(0.1px*var(--amp)))}
