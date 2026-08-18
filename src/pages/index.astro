@@ -1,6 +1,10 @@
 ---
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
+import { Image } from "astro:assets";
+// Square crop of IMG_9875.jpg. The original is a wide 3:4 street shot, and
+// object-fit can only take 25% off that - not enough to frame a portrait.
+import portrait from "@/assets/images/pawel-portrait.jpg";
 import IconRss from "@/assets/icons/IconRss.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import Layout from "@/layouts/Layout.astro";
@@ -94,17 +98,30 @@ const aboutSummary =
     </section>
 
     {/*
-      About: a short standing summary, not a post. PLACEHOLDER COPY - Pawel is
-      writing the real two sentences. Kept in one constant at the top of this
-      file so it is a single obvious thing to replace.
+      About: a short standing summary, not a post. The photo sits in the same
+      fixed-width left column the dates occupy in the post list below, so the
+      section rhymes with the rest of the page instead of introducing a second
+      layout. Square, hard-edged, no radius - rule 3 rules out rounded chips,
+      which is what keeps this reading as an ID photo rather than an avatar.
     */}
     <section id="about" class="pb-12">
       <h2 class="font-data mb-3 text-[11px] lowercase tracking-[0.12em]">
         {t.nav.about}
       </h2>
-      <p class="text-muted-foreground max-w-[62ch] leading-relaxed">
-        {aboutSummary}
-      </p>
+      <div
+        class="grid grid-cols-[3.75rem_1fr] gap-x-4 sm:grid-cols-[4.5rem_1fr] sm:gap-x-8"
+      >
+        <Image
+          src={portrait}
+          alt="Paweł"
+          width={160}
+          densities={[1, 2]}
+          class="aspect-square w-full object-cover"
+        />
+        <p class="text-muted-foreground max-w-[62ch] leading-relaxed">
+          {aboutSummary}
+        </p>
+      </div>
     </section>
 
     {
