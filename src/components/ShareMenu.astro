@@ -1,0 +1,193 @@
+---
+import IconShare from "@/assets/icons/IconShare.svg";
+import IconLink from "@/assets/icons/IconLink.svg";
+import IconX from "@/assets/icons/socials/x.svg";
+import IconLinkedin from "@/assets/icons/socials/linkedin.svg";
+import IconFacebook from "@/assets/icons/socials/facebook.svg";
+import { tplStr, useTranslations } from "@/i18n";
+
+type Props = {
+  /** Absolute URL of the post being shared. */
+  url: string;
+  title: string;
+};
+
+const { url, title } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
+
+const encodedUrl = encodeURIComponent(url);
+const encodedTitle = encodeURIComponent(title);
+
+/*
+  Instagram is deliberately absent: it exposes no web endpoint that opens a
+  composer with a link, for any site. A button for it could only be decorative.
+*/
+const targets = [
+  {
+    platform: "X",
+    href: `https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`,
+    Icon: IconX,
+  },
+  {
+    platform: "LinkedIn",
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    Icon: IconLinkedin,
+  },
+  {
+    platform: "Facebook",
+    href: `https://www.facebook.com/sharer.php?u=${encodedUrl}`,
+    Icon: IconFacebook,
+  },
+];
+---
+
+{/*
+  Rule 3 forbids shadows, fills and radii above 2px, so this is a flat paper
+  panel on a hairline rather than the floating card the reference used.
+
+  Click, not hover, is the trigger. Hover-only would be unreachable by keyboard
+  and would need a tap-then-tap dance on touch; hover merely reveals the button.
+*/}
+<div class="share-menu" data-share-menu>
+  <button
+    type="button"
+    class="share-menu__toggle text-muted-foreground hover:text-foreground focus-visible:outline-accent flex items-center rounded-[2px] p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed"
+    aria-haspopup="true"
+    aria-expanded="false"
+    aria-label={t.post.sharePostIntro}
+    data-share-toggle
+  >
+    <IconShare class="size-4" aria-hidden="true" />
+  </button>
+
+  <div
+    class="share-menu__panel bg-background border-border absolute start-0 z-20 hidden min-w-max flex-col whitespace-nowrap rounded-[2px] border py-1"
+    data-share-panel
+  >
+    <button
+      type="button"
+      class="share-menu__item font-data text-foreground hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] tracking-[0.06em]"
+      data-copy-link={url}
+    >
+      <IconLink class="size-4 shrink-0" aria-hidden="true" />
+      <span data-copy-label data-idle={t.post.copyLink} data-done={t.post.copiedLink}>
+        {t.post.copyLink}
+      </span>
+    </button>
+
+    {
+      targets.map(({ platform, href, Icon }) => (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="share-menu__item font-data text-foreground hover:bg-muted flex items-center gap-2 px-3 py-2 text-[11px] tracking-[0.06em]"
+        >
+          <Icon class="size-4 shrink-0" aria-hidden="true" />
+          <span>{tplStr(t.post.sharePostOn, { platform })}</span>
+        </a>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .share-menu {
+    position: relative;
+    /* Lifts the control above Card's stretched-link overlay, which otherwise
+       covers the whole row and would swallow every click meant for this. */
+    z-index: 1;
+  }
+
+  .share-menu__panel {
+    top: calc(100% + 0.25rem);
+  }
+
+  .share-menu[data-open] .share-menu__panel {
+    display: flex;
+  }
+
+  .share-menu[data-open] {
+    z-index: 20;
+  }
+</style>
+
+<script>
+  /*
+    One delegated listener for every menu on the page, bound once and kept
+    across view transitions - re-binding per row would attach N listeners and
+    leak one set per navigation.
+  */
+  const OPEN = "data-open";
+
+  function closeAll(except?: Element) {
+    document.querySelectorAll("[data-share-menu][data-open]").forEach(menu => {
+      if (menu === except) return;
+      menu.removeAttribute(OPEN);
+      menu
+        .querySelector("[data-share-toggle]")
+        ?.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  function bind() {
+    // Guard on the root element rather than a global: <html> survives Astro's
+    // view transitions, so the listeners are attached exactly once per load.
+    if (document.documentElement.dataset.shareMenuBound) return;
+    document.documentElement.dataset.shareMenuBound = "true";
+
+    document.addEventListener("click", async event => {
+      const target = event.target as Element;
+
+      const toggle = target.closest("[data-share-toggle]");
+      if (toggle) {
+        event.preventDefault();
+        const menu = toggle.closest("[data-share-menu]")!;
+        const willOpen = !menu.hasAttribute(OPEN);
+        closeAll(menu);
+        menu.toggleAttribute(OPEN, willOpen);
+        toggle.setAttribute("aria-expanded", String(willOpen));
+        return;
+      }
+
+      const copy = target.closest<HTMLElement>("[data-copy-link]");
+      if (copy) {
+        event.preventDefault();
+        const label = copy.querySelector<HTMLElement>("[data-copy-label]");
+        try {
+          await navigator.clipboard.writeText(copy.dataset.copyLink ?? "");
+          if (label) {
+            label.textContent = label.dataset.done ?? "";
+            setTimeout(() => {
+              label.textContent = label.dataset.idle ?? "";
+            }, 1200);
+          }
+        } catch {
+          // Clipboard denied (insecure context, or the user said no). Leave the
+          // label alone rather than claiming a copy that did not happen.
+        }
+        return;
+      }
+
+      // A click anywhere else - including a share link, which navigates away.
+      closeAll();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      const open = document.querySelector("[data-share-menu][data-open]");
+      if (!open) return;
+      open.querySelector<HTMLElement>("[data-share-toggle]")?.focus();
+      closeAll();
+    });
+
+    // Focus leaving the menu entirely closes it, which covers Tab-away.
+    document.addEventListener("focusin", event => {
+      const menu = (event.target as Element).closest("[data-share-menu]");
+      closeAll(menu ?? undefined);
+    });
+  }
+
+  bind();
+  document.addEventListener("astro:after-swap", () => closeAll());
+</script>

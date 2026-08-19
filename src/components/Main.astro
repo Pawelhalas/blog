@@ -43,7 +43,13 @@ const backUrl = config.features.showBackButton
       )
     }
   </h1>
-  <p class="mt-2 mb-6 italic">{pageDesc}</p>
+  {/*
+    Section subtitles were dropped on 2026-08-19: the heading already names the
+    section, and a one-line gloss under every one of them was filler. Kept as an
+    optional prop rather than deleted, but rendered only when actually passed -
+    an unconditional <p> left an empty paragraph eating 1.5rem of margin.
+  */}
+  {pageDesc && <p class="mt-2 mb-6 italic">{pageDesc}</p>}
   <slot />
 </main>
 
