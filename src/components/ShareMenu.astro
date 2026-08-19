@@ -103,6 +103,14 @@ const targets = [
     top: calc(100% + 0.25rem);
   }
 
+  /* On the post page the control sits near the end of the document, where a
+     downward panel can fall past the last scrollable pixel and be unreachable.
+     The toggle measures on open and sets data-flip when that would happen. */
+  .share-menu[data-flip] .share-menu__panel {
+    top: auto;
+    bottom: calc(100% + 0.25rem);
+  }
+
   .share-menu[data-open] .share-menu__panel {
     display: flex;
   }
@@ -145,8 +153,18 @@ const targets = [
         const menu = toggle.closest("[data-share-menu]")!;
         const willOpen = !menu.hasAttribute(OPEN);
         closeAll(menu);
+        menu.removeAttribute("data-flip");
         menu.toggleAttribute(OPEN, willOpen);
         toggle.setAttribute("aria-expanded", String(willOpen));
+
+        if (willOpen) {
+          // Measure once it is laid out: if the panel would run past the
+          // bottom of the viewport, flip it above the button instead.
+          const panel = menu.querySelector("[data-share-panel]");
+          if (panel && panel.getBoundingClientRect().bottom > innerHeight) {
+            menu.setAttribute("data-flip", "");
+          }
+        }
         return;
       }
 
