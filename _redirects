@@ -1,0 +1,15 @@
+# Cloudflare Pages redirects. Copied into dist/ by the build script.
+#
+# NOT in public/: Astro 7's rolldown build tries to parse extensionless files
+# there as JavaScript modules, and this file fails with a PARSE_ERROR that
+# takes the whole build down. Keep it here and let `npm run build` copy it.
+#
+# The About page was removed on 2026-08-19; the homepage carries the standing
+# summary instead. It had been live and in the sitemap, so anything already
+# crawled or bookmarked would otherwise hit a 404. Both spellings are listed
+# because pages build as /about/index.html but links are written either way.
+#
+# 301, not 302: the page is gone for good, and a permanent redirect lets
+# search engines retire the old URL rather than keep re-checking it.
+/about/  /  301
+/about   /  301
