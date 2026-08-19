@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "blog-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "blog-dist",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "dist", "-p", "4322", "-c-1"],
+      "port": 4322
+    }
+  ]
+}

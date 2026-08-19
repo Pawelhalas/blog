@@ -14,14 +14,18 @@ type AdjacentPost = {
 type Props = {
   prevPost: AdjacentPost;
   nextPost: AdjacentPost;
+  class?: string;
 };
 
-const { prevPost, nextPost } = Astro.props;
+const { prevPost, nextPost, class: className } = Astro.props;
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
 ---
 
-<div data-pagefind-ignore class="my-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div
+  data-pagefind-ignore
+  class:list={["mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2", className]}
+>
   {
     prevPost && (
       <a
