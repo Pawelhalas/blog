@@ -257,6 +257,15 @@ flourishes only. Reach for text secondary for any real content.
     radius, no shadow. It also opens on **click, not hover** — hover-only would be unreachable by
     keyboard and awkward on touch. Hover may reveal a control; it may never be the only way to
     operate one.
+13. **Share options are one list; share *presentation* is per-context.** Added 2026-08-19 after a
+    correction. Every surface must offer exactly the same ways to share — that list lives in
+    `shareLinks` in `astro-paper.config.ts`, and `src/utils/getShareTargets.ts` builds the URLs, so
+    both surfaces emit byte-identical links. How those options are *presented* is free to differ:
+    `/posts` rows use a dropdown because a list row has no width for four controls; the post page
+    uses an inline icon row because it does. Copy-link is not a URL and cannot live in the config,
+    so `CopyLinkButton.astro` renders it alongside, in both places.
+    **Do not "unify" the two presentations into one component.** That was tried and reverted —
+    aligning the options is the requirement, aligning the interaction is not.
 
 ### Work order
 
