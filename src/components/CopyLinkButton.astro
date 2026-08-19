@@ -35,12 +35,20 @@ const t = useTranslations(Astro.currentLocale);
     "focus-visible:outline-accent rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed",
     variant === "menu"
       ? "share-menu__item font-data text-foreground hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] tracking-[0.06em]"
-      : "text-muted-foreground hover:text-accent flex items-center p-2 sm:p-1",
+      : // Deliberately identical to what LinkButton + ShareLinks give the
+        // platform icons beside it: same inherited colour, same scale, same
+        // rotate-on-hover. Copy-link is a peer of those icons, not a lesser
+        // control, so it must not read as a different tier.
+        "group inline-flex scale-90 items-center gap-1 p-2 hover:rotate-6 hover:text-accent sm:p-1",
     className,
   ]}
 >
   <IconLink
-    class:list={[variant === "menu" ? "size-4 shrink-0" : "size-6 scale-90"]}
+    class:list={[
+      variant === "menu"
+        ? "size-4 shrink-0"
+        : "inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110",
+    ]}
     aria-hidden="true"
   />
   {
