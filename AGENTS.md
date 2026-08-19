@@ -137,6 +137,25 @@ has to justify existing.
 
 Renaming a published tag breaks its URL, so settle a tag before it ships rather than after.
 
+### Hero image
+
+Agreed 2026-08-19. **Every post opens with an image, and that image is its thumbnail on
+`/posts`.** Nothing in the frontmatter declares it — `src/utils/getHeroImage.ts` reads the first
+markdown image out of the post body, so the image is written once and used twice.
+
+This is a convention the author has to keep, not something the build enforces. A post with no
+image, or one that opens with prose, silently gets no thumbnail. Pawel's plan is for the release
+automation to guarantee a hero image per post; until that exists, it is a manual habit. If it
+stops holding, switch to an explicit `ogImage` frontmatter field rather than loosening the
+extraction.
+
+Two constraints the extractor imposes:
+
+- **The image must live under `src/assets/`** and be referenced relatively (`../../assets/...`).
+  Remote URLs are skipped deliberately — they cannot be optimised at build time.
+- **Alt text becomes the thumbnail's alt text.** It is already required for the in-post image;
+  it now does double duty, so it should describe the picture, not the post.
+
 ### Scheduled posts
 
 A `pubDatetime` in the future hides the post until that time — but Cloudflare only rebuilds on
@@ -227,6 +246,17 @@ flourishes only. Reach for text secondary for any real content.
     bursts fired twice a second, close to WCAG 2.3.1's three-flashes-per-second threshold. Any
     change to the timing has to keep bursts at or below one per second. `prefers-reduced-motion`
     must always resolve to a static state.
+11. **No section subtitles.** Added 2026-08-19. The heading names the section; a one-line italic
+    gloss under every one of them ("All the articles I've posted.") was filler. `Main.astro` still
+    accepts `pageDesc` but renders it only when passed, and no page passes it. The `pages.*Desc`
+    strings survive in `en.ts` unused — left there because the tag page composed its subtitle from
+    one, so deleting them is a separate decision.
+12. **Floating UI stays flat.** Added 2026-08-19 for the `/posts` share menu, and binding on
+    anything similar that follows. Rule 3 forbids shadows, fills and radii above 2px, and a
+    dropdown is not exempt: the panel is a paper-background surface on a 0.5px hairline with a 2px
+    radius, no shadow. It also opens on **click, not hover** — hover-only would be unreachable by
+    keyboard and awkward on touch. Hover may reveal a control; it may never be the only way to
+    operate one.
 
 ### Work order
 
@@ -320,13 +350,24 @@ Wanted, but not scheduled and not designed. Establish scope before building.
   The guardrail question to settle first: how much the automation is allowed to do without a human
   reading the diff, given publishing is public and hard to retract.
 
-- **Posts list redesign.** Pawel flagged on 2026-08-13 that the posts list section wants
-  redesigning. **Not designed yet — propose before building.** Note this is not the same as
-  building it: steps 5 and 7 already cover a first pass at the list (date column, hairline rule,
-  count) and should still be built to spec. This item is the redesign that follows, once there is
-  enough real content to judge the pattern against. Settle first whether it changes the homepage
-  list, `/posts`, tag detail pages, or all three — the spec currently asks all of them to share one
-  date-column pattern, so a change to one is a change to the system.
+- ~~**Posts list redesign.**~~ **Done 2026-08-19**, to Pawel's own specification rather than to a
+  proposed design — he rejected both post-page options and supplied a list instead. `/posts` rows
+  now carry a hero thumbnail, a whole-row click target and a share menu; section subtitles were
+  removed site-wide.
+
+  **The scope decision matters more than the build:** the rich row is `/posts` only. The homepage
+  stays deliberately dense and thumbnail-free, and tag detail pages were left on the compact row.
+  So the site now runs **two** list patterns where the spec asked for one — `Card.astro` takes a
+  `layout` prop. That was a deliberate call, not drift. Anyone changing the list should know both
+  patterns exist before "fixing" the inconsistency.
+
+- **Featured article on the homepage.** Pawel flagged on 2026-08-19, while scoping the posts-list
+  redesign — he wants a featured/pinned article treatment on the homepage, distinct from the dense
+  recent-posts list underneath it. **Not designed yet — propose before building.** Two things to
+  settle first: whether it uses the existing `featured` frontmatter boolean (which the schema
+  already has and no post currently sets), and whether it may carry the hero image — the homepage
+  was just deliberately kept thumbnail-free, so a featured block with an image is a considered
+  exception to that, not a contradiction of it.
 
 - ~~**Wordmark / main header redesign.**~~ **Done 2026-08-13.** Built as the distorted wordmark;
   see rule 8 and `src/styles/distortion.css`. Left here rather than deleted so the decision trail
