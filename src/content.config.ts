@@ -24,14 +24,8 @@ const posts = defineCollection({
     }),
 });
 
-const pages = defineCollection({
-  loader: glob({ pattern: "**/[^_]*.{md,mdx}", base: "./src/content/pages" }),
-  schema: z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    ogImage: z.string().optional(),
-    canonicalURL: z.string().optional(),
-  }),
-});
-
-export const collections = { posts, pages };
+// AstroPaper's `pages` collection is gone with the About page (2026-08-19).
+// It existed solely to hold `about.md`, and an empty collection warns on every
+// build. Restore this block, not just a markdown file, if a standing page ever
+// comes back.
+export const collections = { posts };

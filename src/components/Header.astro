@@ -95,15 +95,6 @@ const isActive = (path: string) => {
             <NoiseWord variant="nav" text={t.nav.tags} />
           </a>
         </li>
-        <li class="col-span-2">
-          <a
-            href={getRelativeLocaleUrl(locale, "about")}
-            aria-current={isActive("/about") ? "page" : undefined}
-            class:list={{ "active-nav": isActive("/about") }}
-          >
-            <NoiseWord variant="nav" text={t.nav.about} />
-          </a>
-        </li>
         {
           features.showArchives && (
             <li class="col-span-2">
