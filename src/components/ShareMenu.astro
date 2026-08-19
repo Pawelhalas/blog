@@ -1,9 +1,7 @@
 ---
 import IconShare from "@/assets/icons/IconShare.svg";
-import IconLink from "@/assets/icons/IconLink.svg";
-import IconX from "@/assets/icons/socials/x.svg";
-import IconLinkedin from "@/assets/icons/socials/linkedin.svg";
-import IconFacebook from "@/assets/icons/socials/facebook.svg";
+import CopyLinkButton from "@/components/CopyLinkButton.astro";
+import { getShareTargets } from "@/utils/getShareTargets";
 import { tplStr, useTranslations } from "@/i18n";
 
 type Props = {
@@ -15,30 +13,20 @@ type Props = {
 const { url, title } = Astro.props;
 const t = useTranslations(Astro.currentLocale);
 
-const encodedUrl = encodeURIComponent(url);
-const encodedTitle = encodeURIComponent(title);
+const icons = import.meta.glob<{
+  default: (_props: Record<string, unknown>) => unknown;
+}>("/src/assets/icons/socials/*.svg");
 
 /*
-  Instagram is deliberately absent: it exposes no web endpoint that opens a
-  composer with a link, for any site. A button for it could only be decorative.
+  Platforms come from the shared helper, so this menu and the in-post icon row
+  always offer the same options for the same post.
 */
-const targets = [
-  {
-    platform: "X",
-    href: `https://x.com/intent/post?url=${encodedUrl}&text=${encodedTitle}`,
-    Icon: IconX,
-  },
-  {
-    platform: "LinkedIn",
-    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-    Icon: IconLinkedin,
-  },
-  {
-    platform: "Facebook",
-    href: `https://www.facebook.com/sharer.php?u=${encodedUrl}`,
-    Icon: IconFacebook,
-  },
-];
+const targets = await Promise.all(
+  getShareTargets(url, title).map(async ({ name, platform, href }) => {
+    const mod = await icons[`/src/assets/icons/socials/${name}.svg`]?.();
+    return { platform, href, Icon: mod?.default };
+  })
+);
 ---
 
 {/*
@@ -64,29 +52,22 @@ const targets = [
     class="share-menu__panel bg-background border-border absolute start-0 z-20 hidden min-w-max flex-col whitespace-nowrap rounded-[2px] border py-1"
     data-share-panel
   >
-    <button
-      type="button"
-      class="share-menu__item font-data text-foreground hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] tracking-[0.06em]"
-      data-copy-link={url}
-    >
-      <IconLink class="size-4 shrink-0" aria-hidden="true" />
-      <span data-copy-label data-idle={t.post.copyLink} data-done={t.post.copiedLink}>
-        {t.post.copyLink}
-      </span>
-    </button>
+    <CopyLinkButton {url} variant="menu" />
 
     {
-      targets.map(({ platform, href, Icon }) => (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="share-menu__item font-data text-foreground hover:bg-muted flex items-center gap-2 px-3 py-2 text-[11px] tracking-[0.06em]"
-        >
-          <Icon class="size-4 shrink-0" aria-hidden="true" />
-          <span>{tplStr(t.post.sharePostOn, { platform })}</span>
-        </a>
-      ))
+      targets.map(({ platform, href, Icon }) =>
+        Icon ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="share-menu__item font-data text-foreground hover:bg-muted flex items-center gap-2 px-3 py-2 text-[11px] tracking-[0.06em]"
+          >
+            <Icon class="size-4 shrink-0" aria-hidden="true" />
+            <span>{tplStr(t.post.sharePostOn, { platform })}</span>
+          </a>
+        ) : null
+      )
     }
   </div>
 </div>
@@ -144,7 +125,7 @@ const targets = [
     if (document.documentElement.dataset.shareMenuBound) return;
     document.documentElement.dataset.shareMenuBound = "true";
 
-    document.addEventListener("click", async event => {
+    document.addEventListener("click", event => {
       const target = event.target as Element;
 
       const toggle = target.closest("[data-share-toggle]");
@@ -168,24 +149,10 @@ const targets = [
         return;
       }
 
-      const copy = target.closest<HTMLElement>("[data-copy-link]");
-      if (copy) {
-        event.preventDefault();
-        const label = copy.querySelector<HTMLElement>("[data-copy-label]");
-        try {
-          await navigator.clipboard.writeText(copy.dataset.copyLink ?? "");
-          if (label) {
-            label.textContent = label.dataset.done ?? "";
-            setTimeout(() => {
-              label.textContent = label.dataset.idle ?? "";
-            }, 1200);
-          }
-        } catch {
-          // Clipboard denied (insecure context, or the user said no). Leave the
-          // label alone rather than claiming a copy that did not happen.
-        }
-        return;
-      }
+      // Copying is handled by CopyLinkButton's own listener, which also has to
+      // work in the in-post row where there is no menu. Bail out here so the
+      // panel stays open long enough to show its "Copied" confirmation.
+      if (target.closest("[data-copy-link]")) return;
 
       // A click anywhere else - including a share link, which navigates away.
       closeAll();

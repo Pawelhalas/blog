@@ -1,0 +1,85 @@
+---
+import IconLink from "@/assets/icons/IconLink.svg";
+import { useTranslations } from "@/i18n";
+
+type Props = {
+  /** Absolute URL to place on the clipboard. */
+  url: string;
+  /** "row" is the in-post icon strip; "menu" is a labelled dropdown item. */
+  variant?: "row" | "menu";
+  class?: string;
+};
+
+const { url, variant = "menu", class: className } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
+---
+
+{/*
+  Copy-link is a share option like any other, so it has to exist wherever
+  sharing exists - but it is not a URL, so it cannot live in the shareLinks
+  config next to the platforms. It is rendered alongside them instead, and
+  kept here so both surfaces get identical behaviour from one implementation.
+*/}
+<button
+  type="button"
+  data-copy-link={url}
+  title={t.post.copyLink}
+  class:list={[
+    "focus-visible:outline-accent rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed",
+    variant === "menu"
+      ? "share-menu__item font-data text-foreground hover:bg-muted flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] tracking-[0.06em]"
+      : "text-muted-foreground hover:text-accent flex items-center p-2 sm:p-1",
+    className,
+  ]}
+>
+  <IconLink
+    class:list={[variant === "menu" ? "size-4 shrink-0" : "size-6 scale-90"]}
+    aria-hidden="true"
+  />
+  {
+    variant === "menu" ? (
+      <span
+        data-copy-label
+        data-idle={t.post.copyLink}
+        data-done={t.post.copiedLink}
+      >
+        {t.post.copyLink}
+      </span>
+    ) : (
+      <span class="sr-only">{t.post.copyLink}</span>
+    )
+  }
+</button>
+
+<script>
+  /*
+    One delegated listener for every copy button on the page. Bound on the root
+    element, which survives Astro's view transitions, so it attaches once.
+  */
+  if (!document.documentElement.dataset.copyLinkBound) {
+    document.documentElement.dataset.copyLinkBound = "true";
+
+    document.addEventListener("click", async event => {
+      const button = (event.target as Element).closest<HTMLElement>(
+        "[data-copy-link]"
+      );
+      if (!button) return;
+      event.preventDefault();
+
+      try {
+        await navigator.clipboard.writeText(button.dataset.copyLink ?? "");
+      } catch {
+        // Clipboard denied (insecure context, or the user said no). Say
+        // nothing rather than claiming a copy that did not happen.
+        return;
+      }
+
+      const label = button.querySelector<HTMLElement>("[data-copy-label]");
+      if (!label) return;
+      label.textContent = label.dataset.done ?? "";
+      setTimeout(() => {
+        label.textContent = label.dataset.idle ?? "";
+      }, 1200);
+    });
+  }
+</script>
