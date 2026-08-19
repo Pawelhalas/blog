@@ -5,7 +5,11 @@ import { useTranslations } from "@/i18n";
 type Props = {
   /** Absolute URL to place on the clipboard. */
   url: string;
-  /** "row" is the in-post icon strip; "menu" is a labelled dropdown item. */
+  /**
+   * "menu" carries its own label, so the button reports its result in place.
+   * "row" is icon-only: it reports into a `[data-copy-status]` element
+   * elsewhere inside the surrounding `[data-copy-scope]`.
+   */
   variant?: "row" | "menu";
   class?: string;
 };
@@ -15,14 +19,17 @@ const t = useTranslations(Astro.currentLocale);
 ---
 
 {/*
-  Copy-link is a share option like any other, so it has to exist wherever
-  sharing exists - but it is not a URL, so it cannot live in the shareLinks
-  config next to the platforms. It is rendered alongside them instead, and
-  kept here so both surfaces get identical behaviour from one implementation.
+  Copy-link is a share option like any other, so it exists wherever sharing
+  exists - but it is not a URL, so it cannot live in the shareLinks config
+  next to the platforms. It is rendered alongside them instead, and kept here
+  so both surfaces get identical behaviour from one implementation.
 */}
 <button
   type="button"
   data-copy-link={url}
+  data-idle={t.post.copyLink}
+  data-done={t.post.copiedLink}
+  data-failed={t.post.copyLinkFailed}
   title={t.post.copyLink}
   class:list={[
     "focus-visible:outline-accent rounded-[2px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-dashed",
@@ -38,11 +45,7 @@ const t = useTranslations(Astro.currentLocale);
   />
   {
     variant === "menu" ? (
-      <span
-        data-copy-label
-        data-idle={t.post.copyLink}
-        data-done={t.post.copiedLink}
-      >
+      <span data-copy-status aria-live="polite">
         {t.post.copyLink}
       </span>
     ) : (
@@ -56,6 +59,23 @@ const t = useTranslations(Astro.currentLocale);
     One delegated listener for every copy button on the page. Bound on the root
     element, which survives Astro's view transitions, so it attaches once.
   */
+  const REVERT_AFTER_MS = 1600;
+
+  /**
+   * Where this button reports its result. The dropdown item holds its own
+   * label; the icon-only row has none, so it borrows the "Share this post:"
+   * caption sitting above it, marked with data-copy-status in the same scope.
+   */
+  function statusElementFor(button: HTMLElement) {
+    return (
+      button.querySelector<HTMLElement>("[data-copy-status]") ??
+      button
+        .closest("[data-copy-scope]")
+        ?.querySelector<HTMLElement>("[data-copy-status]") ??
+      null
+    );
+  }
+
   if (!document.documentElement.dataset.copyLinkBound) {
     document.documentElement.dataset.copyLinkBound = "true";
 
@@ -66,20 +86,32 @@ const t = useTranslations(Astro.currentLocale);
       if (!button) return;
       event.preventDefault();
 
+      let copied = true;
       try {
         await navigator.clipboard.writeText(button.dataset.copyLink ?? "");
       } catch {
-        // Clipboard denied (insecure context, or the user said no). Say
-        // nothing rather than claiming a copy that did not happen.
-        return;
+        // Insecure context, or the user declined. Say so rather than staying
+        // silent - with visible feedback, no change reads as "nothing happened"
+        // and the reader cannot tell whether the link is on their clipboard.
+        copied = false;
       }
 
-      const label = button.querySelector<HTMLElement>("[data-copy-label]");
-      if (!label) return;
-      label.textContent = label.dataset.done ?? "";
-      setTimeout(() => {
-        label.textContent = label.dataset.idle ?? "";
-      }, 1200);
+      const status = statusElementFor(button);
+      if (!status) return;
+
+      // Text swap only, no transition: rule 10 requires a static resolution
+      // under prefers-reduced-motion, and an instant swap satisfies it for
+      // everyone without branching on the media query.
+      const idle = status.dataset.idle ?? button.dataset.idle ?? "";
+      status.textContent =
+        (copied ? button.dataset.done : button.dataset.failed) ?? "";
+
+      window.clearTimeout(Number(status.dataset.revertTimer));
+      status.dataset.revertTimer = String(
+        window.setTimeout(() => {
+          status.textContent = idle;
+        }, REVERT_AFTER_MS)
+      );
     });
   }
 </script>
