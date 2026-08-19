@@ -34,10 +34,23 @@ const items = await Promise.all(
 );
 ---
 
+{/*
+  The caption doubles as the copy-link status line. The icon row has no visible
+  label of its own, so rather than adding an element to a page the spec wants
+  quiet, the label that is already here changes state and changes back.
+*/}
 <div
+  data-copy-scope
   class="flex flex-none flex-col items-center justify-center gap-1 md:items-start"
 >
-  <span class="italic">{t.post.sharePostIntro}</span>
+  <span
+    class="italic"
+    data-copy-status
+    data-idle={t.post.sharePostIntro}
+    aria-live="polite"
+  >
+    {t.post.sharePostIntro}
+  </span>
   <div class="flex items-center">
     <CopyLinkButton {url} variant="row" />
     {

@@ -15,6 +15,7 @@ export interface UIStrings {
     sharePostViaEmail: string;
     copyLink: string;
     copiedLink: string;
+    copyLinkFailed: string;
     tagLabel: string;
     backToTop: string;
     goBack: string;
