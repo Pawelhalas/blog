@@ -46,6 +46,14 @@ npm run lint         # eslint .
 `npm run build` runs `astro check` first — a type error fails the build, and therefore the
 Cloudflare deploy. Run it before pushing.
 
+Scripts in `src/scripts/` need `export {}` at the top. Without it, TypeScript treats the file as
+a global script, so two files declaring identically named top-level symbols collide and
+`astro check` fails. See the comment in `noise.ts`.
+
+When verifying image rendering (hero images, OG images), build first and preview `dist/` — the
+dev server's `/_image` endpoint does not render, so a screenshot taken against `astro dev` can
+show a broken image even when the build is fine.
+
 Astro docs: https://docs.astro.build — consult the
 [routing](https://docs.astro.build/en/guides/routing/),
 [components](https://docs.astro.build/en/basics/astro-components/),
@@ -80,6 +88,9 @@ path regardless:
 Convention for this repo: **name the file as the permalink and don't use `slug`.** Two sources of
 truth for one URL is a trap. Reserve `slug` for renaming a published post without breaking its
 URL. Several AstroPaper demo posts use it; that's theme convention, not ours.
+
+A `?` (or other URL-unsafe character) in the filename breaks the content loader outright — Astro
+truncates at the `?` and fails with `ENOENT`. Keep filenames ASCII, lowercase, hyphens only.
 
 ### Underscore prefix excludes from build
 
@@ -161,6 +172,16 @@ Two constraints the extractor imposes:
 A `pubDatetime` in the future hides the post until that time — but Cloudflare only rebuilds on
 push, so a future-dated post will not appear on its own. Either publish with a past/current
 datetime, or push again after the date passes.
+
+### Typora quirks
+
+- **Frontmatter escaping.** Typora sometimes writes `\---` instead of `---` around frontmatter,
+  which fails YAML parsing and the post fails schema validation. Check the frontmatter delimiters
+  after every edit made in Typora.
+- **Dragged-in images can get absolute local paths.** `astro check` does not catch this — Astro
+  treats an absolute path as an external URL and passes it through, so the build reports 0 errors
+  while shipping a dead image. Image paths in post bodies must start with `../../assets/`, same
+  constraint as the hero image above.
 
 ---
 
