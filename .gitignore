@@ -35,7 +35,8 @@ compose.override.yaml
 # claude code - local machine state only (permission grants, absolute paths)
 .claude/settings.local.json
 
-# working notes and session handoffs - not for a public repo
-2026-*-handoff.md
-2026-*-claude-code-handoff.md
-2026-*-content-strategy.md
+# private planning docs - separate private repo, never in the public one
+docs/
+
+# local context for claude code - machine-specific, not for a public repo
+CLAUDE.local.md
