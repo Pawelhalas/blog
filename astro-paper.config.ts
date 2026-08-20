@@ -41,7 +41,11 @@ export default defineAstroPaperConfig({
   // Instagram is absent because it exposes no web share endpoint at all.
   shareLinks: [
     { name: "x",        url: "https://x.com/intent/post?url=" },
-    { name: "linkedin", url: "https://www.linkedin.com/sharing/share-offsite/?url=" },
+    // NOT sharing/share-offsite: LinkedIn rewrites that to the deprecated
+    // shareArticle endpoint, which ignores its parameters and drops the reader
+    // into an empty composer with no link. Verified 2026-08-19 by following the
+    // redirect. This form is passed through verbatim instead.
+    { name: "linkedin", url: "https://www.linkedin.com/feed/?shareActive=true&shareUrl=" },
     { name: "facebook", url: "https://www.facebook.com/sharer.php?u=" },
   ],
 });

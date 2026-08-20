@@ -12,6 +12,12 @@ type Props = {
   description?: string;
   ogImage?: string;
   canonicalURL?: string;
+  /**
+   * Overridden to "article" by PostLayout. It is a prop rather than an extra
+   * <meta> emitted downstream: two og:type tags on one page is not an
+   * override, and scrapers take the first, so posts advertised "website".
+   */
+  ogType?: string;
 };
 
 const { site } = config;
@@ -21,6 +27,7 @@ const {
   description = site.description,
   ogImage = resolveDefaultOgImagePath(config),
   canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
+  ogType = "website",
 } = Astro.props;
 
 const socialImageURL = new URL(ogImage, Astro.site ?? Astro.url);
@@ -62,7 +69,7 @@ const rssHref = getRelativeLocaleUrl(
     <link rel="sitemap" href={getAssetPath("sitemap-index.xml")} />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={site.title} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
