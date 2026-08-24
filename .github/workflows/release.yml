@@ -1,0 +1,127 @@
+name: Release
+
+# The per-post pipeline. Removing the underscore from a draft on a release/**
+# branch is the publish signal — no confirmation prompt, no session that has to
+# be open, no message to answer.
+#
+# The branch defines the scope: the target post is the un-prefixed file that
+# exists here but not on main. Zero or two candidates fails loudly rather than
+# guessing.
+
+on:
+  push:
+    branches:
+      - "release/**"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute everything, write nothing, print the intended diff"
+        type: boolean
+        default: true
+      generate_image:
+        description: "Generate the hero image (costs money)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  # Build plan step 7: run this in dry-run against a real post and check the
+  # tags and descriptions it proposes before letting it write anything.
+  # Flip to "false" for step 8.
+  DRY_RUN_DEFAULT: "true"
+  # Roughly $0.02-$0.25 an image by tier. medium keeps the yearly cost in the
+  # range the design budgeted for; high is noticeably better and ~4x the price.
+  IMAGE_QUALITY: "medium"
+  # Orthography findings go in the PR body for Pawel to apply or ignore while
+  # reviewing the diff. Turning this on would apply them to the file instead,
+  # still under the mechanical guard in lib/orthography.mjs.
+  APPLY_ORTHOGRAPHY: "false"
+
+jobs:
+  release:
+    name: Prepare post for publishing
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Pushes made with GITHUB_TOKEN do not start new workflow runs, so the
+    # pipeline's own commit cannot retrigger this. Belt and braces anyway.
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          # Full history: releaseCandidates() diffs this branch against main.
+          fetch-depth: 0
+          # Deliberately NOT the PAT. This checkout's credentials push the
+          # pipeline's commit back to the branch, and a PAT push would retrigger
+          # this workflow in a loop. The PAT appears only in the PR step below,
+          # where triggering ci.yml is the entire point.
+
+      - name: "📦 Install pnpm"
+        uses: pnpm/action-setup@v4
+        with:
+          version: "11.3.0"
+
+      - name: "🟢 Use Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: "📦 Install automation dependencies"
+        working-directory: .github/scripts
+        run: pnpm install --frozen-lockfile
+
+      - name: "🏗️ Run the release pipeline"
+        run: node .github/scripts/release.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Passed through raw, not collapsed with `||` in an expression: a
+          # false boolean input is falsy there, so `inputs.dry_run || 'true'`
+          # would quietly force a dry run back on when you asked for a real one.
+          # The script resolves input-over-default itself.
+          DRY_RUN_DEFAULT: ${{ env.DRY_RUN_DEFAULT }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          GENERATE_IMAGE_INPUT: ${{ inputs.generate_image }}
+          IMAGE_QUALITY: ${{ env.IMAGE_QUALITY }}
+          APPLY_ORTHOGRAPHY: ${{ env.APPLY_ORTHOGRAPHY }}
+          # "Image is valid but wrong": push an empty commit whose message
+          # contains [reimage]. Only the image step reruns.
+          REIMAGE: ${{ contains(github.event.head_commit.message, '[reimage]') }}
+
+      - name: "🏷️ Ensure PR labels exist"
+        if: hashFiles('pr-title.txt') != ''
+        run: |
+          gh label create needs-image --color FBCA04 \
+            --description "Published without a hero image - add one before merging" --force
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: "🔀 Open or update the pull request"
+        if: hashFiles('pr-title.txt') != ''
+        run: |
+          set -euo pipefail
+          branch="${GITHUB_REF_NAME}"
+          labels="$(cat pr-labels.txt)"
+
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
+            gh pr edit "$branch" --title "$(cat pr-title.txt)" --body-file pr-body.md
+            echo "Updated the existing pull request for $branch."
+          else
+            gh pr create --base main --head "$branch" \
+              --title "$(cat pr-title.txt)" --body-file pr-body.md
+            echo "Opened a pull request for $branch."
+          fi
+
+          if [ -n "$labels" ]; then
+            gh pr edit "$branch" --add-label "$labels"
+          fi
+        env:
+          # The PAT, not github.token. GitHub's docs: "events triggered by the
+          # GITHUB_TOKEN will not create a new workflow run" — a PR opened with
+          # the default token would skip ci.yml entirely and publish something
+          # that was never type-checked.
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}

@@ -1,0 +1,25 @@
+# Proper nouns and terms of art the orthography pass must not "correct".
+# One token per line, no punctuation. Comments start with #.
+# Multi-word names are listed as separate tokens — the guard compares word by word.
+#
+# Add to this file rather than to the code. It is read at run time by
+# .github/scripts/lib/orthography.mjs.
+
+Anthropic
+Amodei
+Minab
+Claude
+Cowork
+Astro
+AstroPaper
+Cloudflare
+Pagefind
+Satori
+Tailwind
+Typora
+GitHub
+Actions
+Bloomberg
+LinkedIn
+YouTube
+Text

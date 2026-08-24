@@ -1,0 +1,7 @@
+# Own workspace root, deliberately.
+#
+# Without this, pnpm walks up to the site's pnpm-workspace.yaml and treats this
+# folder as part of the site project - so it gets no lockfile of its own, and the
+# Anthropic SDK would land in the root lockfile and be installed on every CI
+# build of the site. Keeping a separate root keeps the two dependency trees
+# apart.
