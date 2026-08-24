@@ -42,9 +42,7 @@ const t = useTranslations(locale);
 
   <Breadcrumb />
 
-  <Main
-    pageTitle={[t.pages.tagTitle, tagName]}
-  >
+  <Main pageTitle={[t.pages.tagTitle, tagName]}>
     <ul>
       {page.data.map(data => <Card {...data} />)}
     </ul>

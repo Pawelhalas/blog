@@ -55,18 +55,22 @@ const aboutSummary =
     data-home-path={homePath}
     class="app-layout"
   >
-    {/*
+    {
+      /*
       Hero. Rule 7 wants prose in the sans face; the blurb doubles as the page's
       h1, which the homepage would otherwise lack entirely. Capped at 46ch per
       the spec - site.description is 41, so it fits without truncation.
 
       The RSS link is one of rule 2's four sanctioned accent uses.
-    */}
-    {/*
+    */
+    }
+    {
+      /*
       The hero is the site name as noise you can switch off. The button sits
       top-right of the section; its labels live in the markup so the wording
       stays here rather than in the script.
-    */}
+    */
+    }
     <section id="hero" class="relative pt-12 pb-14">
       <div class="flex justify-end">
         <button
@@ -80,9 +84,7 @@ const aboutSummary =
           wyłącz szum
         </button>
       </div>
-      <h1
-        class="mt-6 text-center text-[clamp(2.25rem,9vw,4.5rem)] sm:mt-4"
-      >
+      <h1 class="mt-6 text-center text-[clamp(2.25rem,9vw,4.5rem)] sm:mt-4">
         <NoiseWord variant="hero" />
       </h1>
       <div class="mt-8 flex justify-center">
@@ -97,15 +99,17 @@ const aboutSummary =
       </div>
     </section>
 
-    {/*
+    {
+      /*
       About: a short standing summary, not a post. The photo sits in the same
       fixed-width left column the dates occupy in the post list below, so the
       section rhymes with the rest of the page instead of introducing a second
       layout. Square, hard-edged, no radius - rule 3 rules out rounded chips,
       which is what keeps this reading as an ID photo rather than an avatar.
-    */}
+    */
+    }
     <section id="about" class="pb-12">
-      <h2 class="font-data mb-3 text-[11px] lowercase tracking-[0.12em]">
+      <h2 class="font-data mb-3 text-[11px] tracking-[0.12em] lowercase">
         {t.nav.about}
       </h2>
       <div
@@ -118,13 +122,15 @@ const aboutSummary =
           densities={[1, 2]}
           class="aspect-square w-full object-cover"
         />
-        {/*
+        {
+          /*
           Optical alignment: a paragraph's box top sits above its first cap by
           half the leading plus the ascender-to-cap gap - measured at 7.64px
           for IBM Plex Sans at 16px/26px, which is 0.478em. Expressed in em so
           it holds if the type scale changes. Without it the text reads as
           sitting low against the photo's hard top edge.
-        */}
+        */
+        }
         <p
           class="text-muted-foreground mt-[-0.478em] max-w-[62ch] leading-relaxed"
         >
@@ -136,7 +142,7 @@ const aboutSummary =
     {
       featuredPosts.length > 0 && (
         <section id="featured" class="pb-8">
-          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+          <h2 class="font-data mb-2 text-[11px] tracking-[0.12em] lowercase">
             {t.home.featured}
           </h2>
           <ul>
@@ -151,7 +157,7 @@ const aboutSummary =
     {
       recentPosts.length > 0 && (
         <section id="recent-posts" class="pb-8">
-          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+          <h2 class="font-data mb-2 text-[11px] tracking-[0.12em] lowercase">
             {t.home.recentPosts}
           </h2>
           <ul>
@@ -172,16 +178,18 @@ const aboutSummary =
       )
     }
 
-    {/*
+    {
+      /*
       The tag grid is the one deliberately dense block on the page - a hairline
       lattice rather than chips, since rule 3 rules out fills and radii. It will
       read as sparse until the tag vocabulary grows; that is expected, not a
       layout bug.
-    */}
+    */
+    }
     {
       tags.length > 0 && (
         <section id="tags" class="pb-10">
-          <h2 class="font-data mb-2 text-[11px] lowercase tracking-[0.12em]">
+          <h2 class="font-data mb-2 text-[11px] tracking-[0.12em] lowercase">
             {t.nav.tags}
           </h2>
           {/*

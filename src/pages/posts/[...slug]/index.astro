@@ -150,9 +150,11 @@ const shareUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin)
       <Content />
     </article>
 
-    {/* Rule 3: the body dividers came out of every other page on 2026-08-13.
+    {
+      /* Rule 3: the body dividers came out of every other page on 2026-08-13.
         Two dashed rules survived here only because the post page had not been
-        touched since. Spacing carries the separation instead. */}
+        touched since. Spacing carries the separation instead. */
+    }
     <EditPost class="mt-12 sm:hidden" {hideEditPost} {post} />
 
     <BackToTopButton />
@@ -161,9 +163,11 @@ const shareUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin)
       {tags.map(tag => <Tag tag={slugifyStr(tag)} tagName={tag} size="sm" />)}
     </ul>
 
-    {/* The in-post icon row stays a row - the /posts dropdown exists because a
+    {
+      /* The in-post icon row stays a row - the /posts dropdown exists because a
         list row has no space for six controls, which is not true here. Only the
-        platform list is shared between them, via getShareTargets. */}
+        platform list is shared between them, via getShareTargets. */
+    }
     <ShareLinks url={shareUrl} {title} />
 
     <AdjacentPostNav class="mt-12" {prevPost} {nextPost} />

@@ -22,7 +22,8 @@ const backUrl = config.features.showBackButton
   id="main-content"
   class:list={["app-layout pb-4", className]}
 >
-  {/*
+  {
+    /*
     Section headings only - post titles have their own h1 in the post page and
     are deliberately left untouched, since lowercasing and distorting a title
     the author wrote would mangle their content.
@@ -30,7 +31,8 @@ const backUrl = config.features.showBackButton
     The tuple form splits the heading into the site's own label and a piece of
     content it does not own: "tag: AI" lowercases "tag" but leaves the tag name
     as the tag vocabulary spells it.
-  */}
+  */
+  }
   <h1 class="text-2xl sm:text-3xl">
     {
       Array.isArray(pageTitle) ? (
@@ -43,12 +45,14 @@ const backUrl = config.features.showBackButton
       )
     }
   </h1>
-  {/*
+  {
+    /*
     Section subtitles were dropped on 2026-08-19: the heading already names the
     section, and a one-line gloss under every one of them was filler. Kept as an
     optional prop rather than deleted, but rendered only when actually passed -
     an unconditional <p> left an empty paragraph eating 1.5rem of margin.
-  */}
+  */
+  }
   {pageDesc && <p class="mt-2 mb-6 italic">{pageDesc}</p>}
   <slot />
 </main>
