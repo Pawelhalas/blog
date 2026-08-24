@@ -18,22 +18,21 @@ type Props = {
   layout?: "compact" | "rich";
 } & CollectionEntry<"posts">;
 
-const {
-  variant: Heading = "h2",
-  layout = "compact",
-  ...post
-} = Astro.props;
+const { variant: Heading = "h2", layout = "compact", ...post } = Astro.props;
 
 const { id, data, filePath } = post;
 const { title, description, ...props } = data;
 
 const href = getPostUrl(id, filePath, Astro.currentLocale);
 const isRich = layout === "rich";
-const hero = isRich ? getHeroImage(post as CollectionEntry<"posts">) : undefined;
+const hero = isRich
+  ? getHeroImage(post as CollectionEntry<"posts">)
+  : undefined;
 const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
 ---
 
-{/*
+{
+  /*
   Design rule 5: the date sits in a fixed-width left column, aligned across
   every row. The link still wraps the title only - wrapping the whole row in an
   anchor would fold the description into the link's accessible name. The rich
@@ -42,10 +41,13 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
 
   Rows carry no separator: Pawel asked for the dividers to go, so rows are
   held apart by spacing and the date column's alignment alone.
-*/}
+*/
+}
 <li class:list={["post-row", { "post-row--rich": isRich }]}>
-  {/* Wrapped rather than styled directly: grid-area has to land on an element
-      this component owns, not on one a child renders. */}
+  {
+    /* Wrapped rather than styled directly: grid-area has to land on an element
+      this component owns, not on one a child renders. */
+  }
   <div class="post-row__date">
     <Datetime {...props} variant="column" />
   </div>

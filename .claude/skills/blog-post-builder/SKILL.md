@@ -52,7 +52,7 @@ title: Why most roadmaps fail
 description: Roadmaps break down when they promise dates instead of outcomes. What to do instead.
 pubDatetime: 2026-08-05T09:00:00Z
 tags:
-  - product-management
+  - product management
   - roadmapping
 ---
 ```
@@ -76,14 +76,19 @@ Notes:
 
 ## Step 4 - Tags
 
+Authoritative source: `.claude/rules/content-workflow.md` (tag vocabulary, agreed
+2026-08-13). If it has changed since this skill was written, trust the rules file and tell the
+user this skill is stale.
+
 Reuse existing tags rather than inventing near-duplicates. Read the tags already in use:
 
 ```
 grep -rh -A5 '^tags:' src/content/posts/*.md src/content/posts/*.mdx | grep '^\s*-' | sort -u
 ```
 
-- lowercase, hyphenated
-- 2-4 per post; more dilutes the tag index
+- lowercase, except proper nouns and acronyms (`AI`, `Anthropic`, `Claude Code`)
+- spaces, never underscores or hyphens - `slugifyStr` converts spaces to hyphens in the URL
+- 2-3 per post; prefer reusing an existing tag over minting a new one
 - if you propose a new tag, say explicitly that it's new and what existing tag it's closest to
 - omitting `tags` silently assigns `["others"]` - always set them
 
