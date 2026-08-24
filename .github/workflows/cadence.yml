@@ -1,0 +1,78 @@
+name: Cadence
+
+# At least one post every two weeks. More often is fine; every publish restarts
+# the clock. This nags at due-2 and logs a miss at due, then goes quiet until the
+# next window — daily nagging just trains you to filter it.
+#
+# "Last published" is derived from git history, not stored, so a post published
+# by hand still restarts the clock. Needs fetch-depth: 0 for that.
+#
+# KNOWN HAZARD, verified 2026-08-24 against GitHub's docs: "In a public
+# repository, scheduled workflows are automatically disabled when no repository
+# activity has occurred in 60 days." This repo is public, so the nag can switch
+# itself off during exactly the quiet stretch it exists to interrupt — and
+# GitHub emails the owner when it does. Once WRITE_ENABLED is on this mostly
+# self-heals: a logged miss commits to main every cadence period, which is
+# repository activity. Until then, nothing here writes, so nothing keeps the
+# schedule alive.
+
+on:
+  schedule:
+    # ~07:00 UTC = ~09:00 CEST, before the working day starts.
+    #
+    # :17 rather than :00 deliberately. GitHub's docs: "the schedule event can
+    # be delayed during periods of high loads of GitHub Actions workflow runs.
+    # High load times include the start of every hour", and badly delayed runs
+    # can be dropped outright. Nothing here is time-critical to the minute, and
+    # an off-peak minute is free.
+    - cron: "17 7 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report only — do not open or update any issue"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  # Ships off. Turn on only after the notification-only phase has run clean
+  # (build plan steps 3-4). The only thing it gates is writing a logged miss
+  # back to .github/release-log.json.
+  WRITE_ENABLED: "false"
+
+jobs:
+  check:
+    name: Check publishing cadence
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          # Full history: the cadence is derived from it.
+          fetch-depth: 0
+          # Writing the miss log pushes to main. Once main is protected that
+          # needs the PAT (an admin's token bypasses protection, which is why
+          # "do not allow bypassing" stays off). Falls back to the default token
+          # so the notification-only phase works with no secrets configured.
+          token: ${{ secrets.RELEASE_PAT || github.token }}
+
+      - name: "🟢 Use Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: "📦 Install automation dependencies"
+        working-directory: .github/scripts
+        run: npm ci --no-audit --no-fund
+
+      - name: "🗓️ Check cadence"
+        run: node .github/scripts/cadence.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WRITE_ENABLED: ${{ env.WRITE_ENABLED }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}

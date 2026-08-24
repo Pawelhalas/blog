@@ -1,0 +1,10 @@
+{
+  "name": "blog-release-automation",
+  "private": true,
+  "type": "module",
+  "description": "Release automation for the blog. Deliberately isolated from the site's own package.json so the Anthropic SDK never enters the Astro build or either site lockfile.",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.120.0",
+    "yaml": "2.9.0"
+  }
+}

@@ -1,0 +1,59 @@
+name: Post-publish
+
+# Records published posts in .github/release-log.json once they are on main.
+#
+# The log is NOT where "last published" comes from — that is derived from git
+# history every time, so a post published by hand still restarts the clock.
+# What the log adds is the miss history and the hero-image background rotation,
+# neither of which git knows about.
+#
+# The script reconciles the whole log against history rather than reading this
+# push event, so it is idempotent and backfills anything published before the
+# workflow existed.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/content/posts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # Ships off, same as cadence.yml. Build plan step 9.
+  WRITE_ENABLED: "false"
+
+jobs:
+  record:
+    name: Record in the release log
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          # Full history: the log is reconciled against every post-adding commit.
+          fetch-depth: 0
+          # Pushing the updated log to main needs a token that bypasses branch
+          # protection. Falls back to the default token so this runs harmlessly
+          # before the PAT exists.
+          token: ${{ secrets.RELEASE_PAT || github.token }}
+
+      - name: "🟢 Use Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: "📦 Install automation dependencies"
+        working-directory: .github/scripts
+        run: npm ci --no-audit --no-fund
+
+      - name: "📒 Update the release log"
+        run: node .github/scripts/post-publish.mjs
+        env:
+          WRITE_ENABLED: ${{ env.WRITE_ENABLED }}
