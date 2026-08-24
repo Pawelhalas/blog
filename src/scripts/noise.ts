@@ -24,15 +24,17 @@ function reflect(): void {
   const root = document.firstElementChild;
   root?.setAttribute("data-noise", noiseValue);
 
-  document.querySelectorAll<HTMLButtonElement>("[data-noise-btn]").forEach(btn => {
-    const isOff = noiseValue === OFF;
-    // Labels are authored on the button so the wording stays in the markup
-    // rather than being reconstructed here.
-    btn.textContent = isOff
-      ? (btn.dataset.labelOn ?? "włącz szum")
-      : (btn.dataset.labelOff ?? "wyłącz szum");
-    btn.setAttribute("aria-pressed", String(isOff));
-  });
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-noise-btn]")
+    .forEach(btn => {
+      const isOff = noiseValue === OFF;
+      // Labels are authored on the button so the wording stays in the markup
+      // rather than being reconstructed here.
+      btn.textContent = isOff
+        ? (btn.dataset.labelOn ?? "włącz szum")
+        : (btn.dataset.labelOff ?? "wyłącz szum");
+      btn.setAttribute("aria-pressed", String(isOff));
+    });
 }
 
 function persist(): void {
@@ -42,12 +44,14 @@ function persist(): void {
 
 function setup(): void {
   reflect();
-  document.querySelectorAll<HTMLButtonElement>("[data-noise-btn]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      noiseValue = noiseValue === OFF ? ON : OFF;
-      persist();
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-noise-btn]")
+    .forEach(btn => {
+      btn.addEventListener("click", () => {
+        noiseValue = noiseValue === OFF ? ON : OFF;
+        persist();
+      });
     });
-  });
 }
 
 setup();
