@@ -23,22 +23,26 @@ const icons = import.meta.glob<{
   rendered first to match the dropdown's order.
 */
 const items = await Promise.all(
-  getShareTargets(url, title).map(async ({ name, platform, href, linkTitle }) => {
-    const mod = await icons[`/src/assets/icons/socials/${name}.svg`]?.();
-    return {
-      href,
-      title: linkTitle ?? tplStr(t.post.sharePostOn, { platform }),
-      Icon: mod?.default,
-    };
-  })
+  getShareTargets(url, title).map(
+    async ({ name, platform, href, linkTitle }) => {
+      const mod = await icons[`/src/assets/icons/socials/${name}.svg`]?.();
+      return {
+        href,
+        title: linkTitle ?? tplStr(t.post.sharePostOn, { platform }),
+        Icon: mod?.default,
+      };
+    }
+  )
 );
 ---
 
-{/*
+{
+  /*
   The caption doubles as the copy-link status line. The icon row has no visible
   label of its own, so rather than adding an element to a page the spec wants
   quiet, the label that is already here changes state and changes back.
-*/}
+*/
+}
 <div
   data-copy-scope
   class="flex flex-none flex-col items-center justify-center gap-1 md:items-start"

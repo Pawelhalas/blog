@@ -29,13 +29,15 @@ const targets = await Promise.all(
 );
 ---
 
-{/*
+{
+  /*
   Rule 3 forbids shadows, fills and radii above 2px, so this is a flat paper
   panel on a hairline rather than the floating card the reference used.
 
   Click, not hover, is the trigger. Hover-only would be unreachable by keyboard
   and would need a tap-then-tap dance on touch; hover merely reveals the button.
-*/}
+*/
+}
 <div class="share-menu" data-share-menu>
   <button
     type="button"
@@ -49,7 +51,7 @@ const targets = await Promise.all(
   </button>
 
   <div
-    class="share-menu__panel bg-background border-border absolute start-0 z-20 hidden min-w-max flex-col whitespace-nowrap rounded-[2px] border py-1"
+    class="share-menu__panel bg-background border-border absolute start-0 z-20 hidden min-w-max flex-col rounded-[2px] border py-1 whitespace-nowrap"
     data-share-panel
   >
     <CopyLinkButton {url} variant="menu" />

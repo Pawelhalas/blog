@@ -18,12 +18,14 @@ const { url, variant = "menu", class: className } = Astro.props;
 const t = useTranslations(Astro.currentLocale);
 ---
 
-{/*
+{
+  /*
   Copy-link is a share option like any other, so it exists wherever sharing
   exists - but it is not a URL, so it cannot live in the shareLinks config
   next to the platforms. It is rendered alongside them instead, and kept here
   so both surfaces get identical behaviour from one implementation.
-*/}
+*/
+}
 <button
   type="button"
   data-copy-link={url}
@@ -39,7 +41,7 @@ const t = useTranslations(Astro.currentLocale);
         // platform icons beside it: same inherited colour, same scale, same
         // rotate-on-hover. Copy-link is a peer of those icons, not a lesser
         // control, so it must not read as a different tier.
-        "group inline-flex scale-90 items-center gap-1 p-2 hover:rotate-6 hover:text-accent sm:p-1",
+        "group hover:text-accent inline-flex scale-90 items-center gap-1 p-2 hover:rotate-6 sm:p-1",
     className,
   ]}
 >
