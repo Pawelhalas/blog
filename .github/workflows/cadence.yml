@@ -61,6 +61,11 @@ jobs:
           # so the notification-only phase works with no secrets configured.
           token: ${{ secrets.RELEASE_PAT || github.token }}
 
+      - name: "📦 Install pnpm"
+        uses: pnpm/action-setup@v4
+        with:
+          version: "11.3.0"
+
       - name: "🟢 Use Node.js"
         uses: actions/setup-node@v4
         with:
@@ -68,7 +73,7 @@ jobs:
 
       - name: "📦 Install automation dependencies"
         working-directory: .github/scripts
-        run: npm ci --no-audit --no-fund
+        run: pnpm install --frozen-lockfile
 
       - name: "🗓️ Check cadence"
         run: node .github/scripts/cadence.mjs

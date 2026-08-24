@@ -22,3 +22,7 @@
 # it on every edit — would turn format:check red again with each new post,
 # breaking the CI gate that release.yml relies on to publish.
 /src/content/posts/**/*.md
+
+# Generated lockfile. The /.github whitelist above would otherwise pull it in,
+# and there is nothing to gain from hand-formatting a file pnpm rewrites.
+/.github/scripts/pnpm-lock.yaml

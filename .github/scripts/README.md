@@ -79,7 +79,9 @@ default token, for the same reason in reverse — it must not retrigger
   the post.
 - `.prettierignore` whitelists `/.github`, so everything here is format-checked
   by `ci.yml`. Run `pnpm run format` after editing.
-- Dependencies live in `.github/scripts/package.json`, deliberately separate
-  from the site's, so the Anthropic SDK never enters the Astro build.
+- This folder is its own pnpm root, not part of the site's project — that is
+  what `pnpm-workspace.yaml` here is for. It keeps the Anthropic SDK out of the
+  site's lockfile and stops it being installed on every CI build of the site.
+  Install with `pnpm install` from inside this folder, never from the repo root.
 - Scheduled workflows in a public repo are auto-disabled after 60 days of no
   repository activity. See the comment at the top of `cadence.yml`.
