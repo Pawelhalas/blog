@@ -113,11 +113,18 @@ function main() {
     return;
   }
 
-  if (daysUntilDue > 0) {
+  // Note the boundary: the due date itself is still on time. The rule is "at
+  // least one post every N days", so publishing on day N satisfies it — a miss
+  // is only a miss once the day has passed. Nagging on the due date and logging
+  // the miss the morning after is the difference between a system that is right
+  // and one that calls you late on the day you ship.
+  if (daysUntilDue >= 0) {
     notify(
       `Cadence: publish by ${dueDate}`,
       [
-        `${daysUntilDue} day(s) until the ${cadenceDays}-day cadence is due.`,
+        daysUntilDue === 0
+          ? `The ${cadenceDays}-day cadence is due **today**. Publishing any time today counts.`
+          : `${daysUntilDue} day(s) until the ${cadenceDays}-day cadence is due.`,
         "",
         `Last published: **${published.posts.join(", ")}** on ${published.date.slice(0, 10)}.`,
         "",
@@ -127,14 +134,14 @@ function main() {
         "git switch -c release/my-post && git mv src/content/posts/_my-post.md src/content/posts/my-post.md && git commit -am 'Publish my-post' && git push -u origin HEAD",
         "```",
         "",
-        `If nothing ships by ${dueDate}, a miss is logged and the clock restarts. Closing this issue does not stop that.`,
+        `If nothing has shipped by the end of ${dueDate}, a miss is logged and the clock restarts. Closing this issue does not stop that.`,
       ].join("\n")
     );
     return;
   }
 
-  // Due date reached with nothing published: log the miss once, restart the
-  // clock once, and stop notifying until the next window opens.
+  // The due date has passed with nothing published: log the miss once, restart
+  // the clock once, and stop notifying until the next window opens.
   const miss = {
     dueAt,
     loggedAt: new Date().toISOString(),
