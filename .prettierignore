@@ -15,3 +15,10 @@
 
 # Ignore MDX files
 *.mdx
+
+# Never reformat post prose. These files are written in Typora, which emits
+# trailing spaces and `*italic*`; Prettier rewrites both. The result renders
+# identically, but it churns published prose and — because Typora reintroduces
+# it on every edit — would turn format:check red again with each new post,
+# breaking the CI gate that release.yml relies on to publish.
+/src/content/posts/**/*.md
