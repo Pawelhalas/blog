@@ -92,6 +92,18 @@ jobs:
           # contains [reimage]. Only the image step reruns.
           REIMAGE: ${{ contains(github.event.head_commit.message, '[reimage]') }}
 
+      # A dry run writes nothing, so the hero image it generated (and paid for)
+      # would otherwise vanish with the runner. On a real run the image is
+      # committed and renders in the PR's Files changed tab, so there is nothing
+      # to upload and this step finds no files.
+      - name: "🖼️ Upload the dry-run hero image for review"
+        if: hashFiles('dry-run-preview/*') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: hero-image-preview
+          path: dry-run-preview/
+          retention-days: 14
+
       - name: "🏷️ Ensure PR labels exist"
         if: hashFiles('pr-title.txt') != ''
         run: |

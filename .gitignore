@@ -40,3 +40,7 @@ docs/
 
 # local context for claude code - machine-specific, not for a public repo
 CLAUDE.local.md
+
+# release.yml dry-run scratch: the generated hero image, kept only so it can be
+# uploaded as a workflow artifact for review. Never part of a commit.
+dry-run-preview/
