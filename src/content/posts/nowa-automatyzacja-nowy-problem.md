@@ -1,7 +1,15 @@
 ---
 title: Nowa automatyzacja, nowy problem
-description: Czy ja na pewno wiem co robię?
+description: Dario Amodei zapewnia, że Red Lines Anthropica nie zostały złamane, a potem dodaje, że dobrzy to USA. Zatrzymałem się właśnie na tym drugim zdaniu.
+pubDatetime: 2026-08-25T13:07:00Z
+tags:
+  - AI
+  - Anthropic
+  - etyka
+featured: true
 ---
+
+![Puste drewniane szkolne biurko, na nim tabliczka do pisania i kawałek kredy.](../../assets/images/nowa-automatyzacja-nowy-problem-blue.png)
 
 To jest draft posta. Ten post będzie o tym, jak poprawiłem flow pracy nad blogiem. 
 
