@@ -9,10 +9,14 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
-import { askLong, askStructured } from "./lib/claude.mjs";
+import { askStructured } from "./lib/claude.mjs";
 import { git, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
 import { buildPrompt, generateImage } from "./lib/image.mjs";
-import { guard, loadAllowlist } from "./lib/orthography.mjs";
+import {
+  applyCorrections,
+  loadAllowlist,
+  verifyCorrections,
+} from "./lib/orthography.mjs";
 import {
   ASSETS_DIR,
   assertNoTyporaEscape,
@@ -172,35 +176,56 @@ async function describeAndTag({ title, body, rules, inventory }) {
   return meta;
 }
 
+/**
+ * A list of corrections, never the post itself. The model cannot rewrite prose
+ * it is never asked to reproduce — see the note in lib/orthography.mjs.
+ */
+const CorrectionsSchema = z.object({
+  corrections: z.array(
+    z.object({
+      before: z.string(),
+      after: z.string(),
+      reason: z.string(),
+    })
+  ),
+});
+
 async function orthography(body) {
-  const corrected = await askLong({
+  const { corrections } = await askStructured({
+    schema: CorrectionsSchema,
     system:
-      "You are a proofreader for Polish and English text. You fix orthography ONLY: spelling, " +
-      "diacritics, and obvious typos. You never rewrite, reorder, shorten, lengthen, or improve " +
-      "anything. You never change punctuation, style, word choice, or grammar. If a word is " +
-      "spelled correctly, you leave it exactly as it is.",
+      "You are a proofreader for Polish and English text. You find orthography errors only: " +
+      "misspellings, missing or wrong diacritics, and obvious typos. You do not comment on " +
+      "style, word choice, grammar, punctuation or structure, and you never suggest rewording. " +
+      "If the text has no orthography errors you return an empty list, which is a normal and " +
+      "expected answer.",
     prompt: [
-      "Return the text below with orthography errors corrected and nothing else changed.",
+      "Find the orthography errors in the text below.",
       "",
-      "Hard constraints — the output is checked mechanically against all of these and discarded if any fails:",
+      "Return one entry per misspelled word:",
       "",
-      "- Exactly the same number of paragraphs.",
-      "- Exactly the same number of words in every paragraph.",
-      "- Every difference must be a single whole word replaced by a single whole word.",
-      "- Leave fenced code blocks, URLs, link and image targets, and markdown syntax untouched.",
-      "- Leave proper nouns and product names alone (Anthropic, Amodei, Minab, Claude Code, ...).",
+      "- `before` — the word exactly as it appears in the text, one word, no surrounding punctuation.",
+      "- `after` — the correctly spelled word, one word.",
+      '- `reason` — a few words on what is wrong, in the language of the text (e.g. "brak ogonka").',
       "",
-      "Return only the corrected text. No commentary, no fence around it.",
+      "Rules:",
+      "",
+      "- One whole word in, one whole word out. Never a phrase, never a sentence.",
+      "- Only real orthography errors. A word spelled correctly is not an entry, even if you would have chosen a different word.",
+      "- Ignore code, URLs, file paths and markdown syntax.",
+      "- Ignore proper nouns and product names (Anthropic, Amodei, Minab, Claude Code, ...).",
+      "- Do not reproduce the text. Only the list.",
       "",
       "---",
       "",
       body,
     ].join("\n"),
+    maxTokens: 8000,
   });
 
-  return guard(
+  return verifyCorrections(
     body,
-    corrected,
+    corrections,
     loadAllowlist(resolve(HERE, "term-allowlist.txt"))
   );
 }
@@ -360,8 +385,8 @@ async function main() {
   // he reads the diff. Turning it on applies only the findings that survived
   // the guard — never the model's text wholesale.
   const proofread =
-    APPLY_ORTHOGRAPHY && language?.ok && language.findings.length > 0
-      ? language.applied
+    APPLY_ORTHOGRAPHY && language?.accepted.length
+      ? applyCorrections(body, language.accepted)
       : body;
 
   let finalBody = proofread;
@@ -427,17 +452,18 @@ async function main() {
           "",
           "### Orthography",
           "",
-          language.ok
-            ? language.findings.length
-              ? `${language.findings.length} finding(s). ${APPLY_ORTHOGRAPHY ? "Applied." : "**Not applied** — apply the ones you agree with while reviewing the diff."}\n\n` +
-                "| ¶ | Written | Suggested |\n|---|---|---|\n" +
-                language.findings
-                  .map(f => `| ${f.paragraph} | ${f.before} | ${f.after} |`)
-                  .join("\n")
-              : "No orthography findings."
-            : `⚠️ Discarded — the proofreading pass came back structurally different (${language.reason}), which means it rewrote rather than corrected. Nothing was applied and no findings are reported.`,
-          language.ok && language.rejected?.length
-            ? `\n${language.rejected.length} suggestion(s) dropped by the guard as not-prose or allowlisted: ${language.rejected.map(r => `\`${r.before}\` → \`${r.after}\` (${r.why})`).join(", ")}.`
+          language.accepted.length
+            ? `${language.accepted.length} finding(s). ${APPLY_ORTHOGRAPHY ? "Applied." : "**Not applied** \u2014 apply the ones you agree with while reviewing the diff."}\n\n` +
+              "| \u00b6 | Written | Suggested | Why |\n|---|---|---|---|\n" +
+              language.accepted
+                .map(
+                  f =>
+                    `| ${f.paragraph} | \`${f.before}\` | \`${f.after}\` | ${f.reason}${f.occurrences > 1 ? ` (\u00d7${f.occurrences})` : ""} |`
+                )
+                .join("\n")
+            : "No orthography findings.",
+          language.rejected.length
+            ? `\n${language.rejected.length} suggestion(s) dropped by the guard: ${language.rejected.map(r => `\`${r.before}\` \u2192 \`${r.after}\` (${r.why})`).join(", ")}.`
             : "",
         ]
   ).join("\n");
