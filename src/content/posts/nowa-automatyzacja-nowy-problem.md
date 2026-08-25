@@ -5,53 +5,19 @@ description: Czy ja na pewno wiem co robię?
 
 To jest draft posta. Ten post będzie o tym, jak poprawiłem flow pracy nad blogiem. 
 
+We wspomnianym dokumencie, Dario Amodei, współzałożyciel i CEO Anthropica, mierzy się z szeregiem pytań i wątpliwości o etyczne aspekty budowy i wykorzystywania narzędzi opartych o sztuczną inteligencję. Pytania te trafiają zresztą na podatny grunt. W końcu Amodei pozycjonuje Anthropic jako twórcę etycznego AI, działającego w modelu *public benefit corporation* (organizacja, która poza celami czysto biznesowymi, działa na poczet dobra wspólnego). Jego filozofia rozwoju ma stanowić przeciwwagę dla OpenAI, które Amodei opuszczał, nie chcąc ponoć zgodzić się na wątpliwe praktyki i standardy bezpieczeństwa wykorzystania modeli językowych. 
 
+Moją uwagę przykuł fragment dokumentu Bloomberga, w którym reporterka pyta właśnie o zasadność i etyczne wątpliwości związane z wykorzystaniem modeli Anthropica w determinowaniu celów ataków USA na Iran w trwającej obecnie wojnie na Bliskim Wschodzie. W wywiadzie pojawia się wręcz sugestia, że mogły one być odpowiedzialne za zbombardowanie szkoły dla dziewcząt w Minabie w lutym 2026, w którego efekcie zgineło ponad 160 osób, głównie dzieci.
 
-## [draft] The problem I thought I had
+O ile Amodei nie odpowiada, czy i w jakim stopniu LLMy Anthropica brały udział w tym wydarzeniu, to zaznacza, że na pewno nie doszło do złamania kluczowych restrykcji (z tzw. *Red Lines*), jakie organizacja nakłada na podmioty implementujące jej rozwiązania. Te restrykcje sprowadzają się do dwóch dobrych praktyk:
 
-I'm building a personal blog. The work splits in two:
+1. Braku zgody Anthropica na śledzenie własnych obywateli na masową skalę (*mass domestic surveillance*),
+2. Braku zgody Anthropica na wykorzystanie LLMów do operowania w pełni autonomiczną bronią (*fully autonomous weapon*).
 
-- **Thinking** — what to write, who for, how the site should look. I do this in Claude Cowork.
-- **Building** — actually changing the site. I do this in Claude Code.
+### Amodei jest patriotą. Tylko czy to dobrze?
 
-Two tools, two folders, one project. It felt scattered. Decisions I made while building never
-made it back into my planning docs. Strategy I wrote while thinking never reached the tool
-doing the building.
+Linia obrony jest więc jasna. Człowiek podejmuje decyzje, nie AI, więc człowiek bierze na siebie odpowiedzialność za konsekwencje swoich decyzji. I nawet byłbym w stanie przyjąć ją do wiadomości, gdyby nie to, co usłyszałem chwilę później. 
 
-So I wrote a prompt asking for the perfect workflow to connect them.
+CEO Anthropic roztacza przed nami swój pogląd na miejsce modeli językowych jego organizacji  w formowaniu światowego porządku. Stwierdza, że wykorzystanie AI w konfliktach zbrojnych stanowi coś na kształt - parafrazuję - nowego wyścigu zbrojeń. A jako że ostatecznie jest patriotą, to chce, by ci dobrzy, czyli USA, zdobyli przewagę na polu bitwy poprzez uzyskanie dostępu do najnowszych i najsilniejszych rozwiązań. 
 
-## What I did instead of sending it
-
-I asked for the prompt to be **reviewed** before it was answered.
-
-That turned out to be the highest-leverage decision of the session, because the review found
-the prompt was asking the wrong question. It asked for an essay about workflows in general —
-"what's the consensus view, what's contested, what are 3–5 approaches." Generic advice, of the
-kind you could get without knowing anything about me.
-
-The rewrite changed one thing that mattered: **stop theorising, go read my actual files.**
-
-> Both folders are connected to this session. Read them before answering — the current state
-> of the split is visible on disk, don't infer it from what I've written here.
-
-Same question. Completely different answer.
-
-## What the files actually said
-
-The diagnosis contradicted my own description of the problem.
-
-I wasn't split across two environments. **One had already won** — I'd been drifting toward
-keeping everything in the code repo for weeks without deciding to. My "planning folder" was a
-museum: a README describing three files, two of which had moved and one of which was empty.
-Untouched for fifteen days while twenty-one batches of work shipped on the other side.
-
-The real problems were ones I hadn't noticed:
-
-1. **My private planning docs existed in exactly one place.** No backup, no history. If the
-   laptop died, they died.
-2. **My main instruction file had grown to 404 lines.** Anthropic's own documentation says to
-   target under 200, because longer files get followed *less* reliably.[^1]
-3. **The worst one:** a stale copy of my design specification was sitting one folder too high in
-   my file tree, loading into every single session, contradicting the live version.
-
-That third one is the story.
+Tylko skąd założenie, że ci dobrzy to USA? 
