@@ -1,5 +1,10 @@
 import { execFileSync } from "node:child_process";
-import { appendFileSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -37,6 +42,9 @@ import {
  */
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+
+/** Scratch dir for dry-run output. Never committed; see the DRY_RUN branch. */
+const PREVIEW_DIR = "dry-run-preview";
 
 /**
  * A workflow_dispatch input wins over the workflow's default; an empty string
@@ -421,6 +429,23 @@ async function main() {
   summary(report);
 
   if (DRY_RUN) {
+    // The image was generated and paid for, so don't bin it. On a real run it
+    // gets committed and shows up rendered in the PR's Files changed tab; a dry
+    // run writes nothing, which left the one genuinely subjective thing the
+    // pipeline produces invisible at exactly the moment you want to judge it.
+    //
+    // PREVIEW_DIR sits outside src/assets/ and the commit step adds only
+    // explicit paths, so a preview cannot drift into a commit. It also never
+    // exists on a real run.
+    if (image) {
+      mkdirSync(PREVIEW_DIR, { recursive: true });
+      writeFileSync(`${PREVIEW_DIR}/${imageFile}`, image);
+      summary(
+        `\nHero image written to \`${PREVIEW_DIR}/${imageFile}\` and uploaded as the ` +
+          "**hero-image-preview** artifact on this run — download it from the Artifacts " +
+          "box at the bottom of this page to see what it actually drew."
+      );
+    }
     summary(
       "\n---\n\n**Dry run — nothing was written, committed, or pushed.**"
     );
