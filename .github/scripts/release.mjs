@@ -7,8 +7,9 @@ import {
 } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 
-import { ask, askLong, parseJson } from "./lib/claude.mjs";
+import { askLong, askStructured } from "./lib/claude.mjs";
 import { git, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
 import { buildPrompt, generateImage } from "./lib/image.mjs";
 import { guard, loadAllowlist } from "./lib/orthography.mjs";
@@ -109,8 +110,23 @@ function tagInventory(ref) {
     .join("\n");
 }
 
+/**
+ * Schema-enforced so the transport cannot fail on the content. See the note in
+ * lib/claude.mjs: Polish typographic quotes inside `tagReasoning` broke raw
+ * JSON parsing on the first real post.
+ */
+const MetadataSchema = z.object({
+  description: z.string(),
+  tags: z.array(z.string()),
+  newTags: z.array(z.object({ tag: z.string(), closest: z.string() })),
+  tagReasoning: z.string(),
+  imageSubject: z.string(),
+  imageAlt: z.string(),
+});
+
 async function describeAndTag({ title, body, rules, inventory }) {
-  const raw = await ask({
+  const meta = await askStructured({
+    schema: MetadataSchema,
     system:
       "You prepare frontmatter for a personal blog written by Pawel Halas, a product owner in Wrocław. " +
       "Posts are written in Polish or English, never both — always answer in the language the post itself is written in. " +
@@ -134,8 +150,6 @@ async function describeAndTag({ title, body, rules, inventory }) {
       "",
       "## What to return",
       "",
-      "A single JSON object, no prose around it and no markdown fence, with these keys:",
-      "",
       "- `description` — 160 characters or fewer. A sentence, not a label; it is both the SEO meta description and the text on the generated OG image. Same language as the post.",
       "- `tags` — an array of 2 or 3 tags obeying the rules above. Prefer reusing a tag from the inventory.",
       '- `newTags` — an array naming any tag you invented that is not in the inventory, each with the closest existing tag: `[{"tag": "...", "closest": "..."}]`. Empty array if you reused everything.',
@@ -145,13 +159,10 @@ async function describeAndTag({ title, body, rules, inventory }) {
     ].join("\n"),
   });
 
-  const meta = parseJson(raw, "post metadata");
-  if (
-    !meta.description ||
-    !Array.isArray(meta.tags) ||
-    meta.tags.length === 0
-  ) {
-    fail(`metadata response was missing description or tags:\n${raw}`);
+  if (!meta.description || meta.tags.length === 0) {
+    fail(
+      `metadata came back without a description or tags:\n${JSON.stringify(meta, null, 2)}`
+    );
   }
   if (meta.description.length > 160) {
     fail(
@@ -199,8 +210,14 @@ async function orthography(body) {
  * not ready": the frontmatter is already settled and re-deriving it would churn
  * a diff Pawel has already read. So only the image brief is recomputed.
  */
+const ImageBriefSchema = z.object({
+  imageSubject: z.string(),
+  imageAlt: z.string(),
+});
+
 async function imageBrief({ title, body }) {
-  const raw = await ask({
+  const meta = await askStructured({
+    schema: ImageBriefSchema,
     system:
       "You brief an illustrator for a personal blog. You describe what to draw. " +
       "You never comment on the writing.",
@@ -211,16 +228,15 @@ async function imageBrief({ title, body }) {
       "",
       body,
       "",
-      "Return a single JSON object, no prose and no markdown fence, with:",
+      "Provide:",
       "",
       "- `imageSubject` — the single most concrete image in the post, as a short visual description in English. A thing that can be drawn, not a concept. Subject only: no style, no background, no colour. Pick a different angle from the obvious one.",
       "- `imageAlt` — alt text for that illustration, in the language of the post. It describes the picture, not the post.",
     ].join("\n"),
   });
 
-  const meta = parseJson(raw, "image brief");
   if (!meta.imageSubject || !meta.imageAlt) {
-    fail(`image brief was missing imageSubject or imageAlt:\n${raw}`);
+    fail(`image brief came back incomplete:\n${JSON.stringify(meta, null, 2)}`);
   }
   return meta;
 }

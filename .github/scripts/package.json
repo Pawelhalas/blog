@@ -5,6 +5,7 @@
   "description": "Release automation for the blog. Its own pnpm root (see pnpm-workspace.yaml) so the Anthropic SDK stays out of the site's lockfile and out of every CI build of the site.",
   "dependencies": {
     "@anthropic-ai/sdk": "0.120.0",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
   }
 }
