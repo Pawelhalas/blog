@@ -70,6 +70,19 @@ default token, for the same reason in reverse — it must not retrigger
 | Zero or two candidate posts         | Hard failure with the file list. One branch, one post                                                           |
 | Post is `.mdx`                      | Hard failure. MDX entries expose no `body`, so `getHeroImage.ts` can never find a hero image                    |
 
+## The hero image is decided once
+
+`gpt-image-1` is not deterministic, so the same prompt drawn twice gives two
+different pictures. An early version regenerated on every run, which meant the
+dry-run preview showed you one image and the real run published another — a
+checkpoint that decided nothing, and worse than having no preview at all.
+
+So the first run for a branch draws the image and uploads it as the
+`hero-image-preview` artifact; every later run on that branch pulls it back and
+reuses it. What you approve is what ships. `[reimage]` is the deliberate
+exception — it ignores the preview and draws something new, which is the whole
+point of it.
+
 ## Constraints worth knowing before editing these scripts
 
 - The hero image is the **first markdown image in the body**, not a frontmatter

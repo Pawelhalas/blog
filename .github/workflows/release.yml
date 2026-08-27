@@ -26,6 +26,9 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  # Reading earlier runs of this workflow, to find a hero image already
+  # previewed and approved for this branch.
+  actions: read
 
 env:
   # Build plan step 7: run this in dry-run against a real post and check the
@@ -73,6 +76,31 @@ jobs:
       - name: "📦 Install automation dependencies"
         working-directory: .github/scripts
         run: pnpm install --frozen-lockfile
+
+      # The hero image is regenerated on every run, and gpt-image-1 is not
+      # deterministic - so a dry run used to draw one picture, show it, and the
+      # real run would then commit a different one. That made the preview worse
+      # than useless: it looked like a checkpoint but decided nothing.
+      #
+      # So an image already previewed for this branch is pulled back in and
+      # reused. [reimage] skips this deliberately; drawing something new is the
+      # entire point of it.
+      - name: "♻️ Reuse a hero image already previewed for this branch"
+        if: ${{ !contains(github.event.head_commit.message, '[reimage]') }}
+        run: |
+          set -uo pipefail
+          for r in $(gh run list --workflow=release.yml --branch "$GITHUB_REF_NAME" \
+                       --status success --limit 20 --json databaseId --jq '.[].databaseId'); do
+            has=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$r/artifacts" \
+                    --jq '.artifacts[] | select(.name=="hero-image-preview" and .expired==false) | .id' || true)
+            if [ -n "$has" ]; then
+              gh run download "$r" -n hero-image-preview -D dry-run-preview \
+                && echo "Reusing the hero image previewed in run $r" && break
+            fi
+          done
+          ls dry-run-preview/ 2>/dev/null || echo "No previewed image for this branch yet - one will be generated."
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: "🏗️ Run the release pipeline"
         run: node .github/scripts/release.mjs
