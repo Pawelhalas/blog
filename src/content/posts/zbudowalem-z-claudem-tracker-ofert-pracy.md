@@ -8,7 +8,7 @@ tags:
 featured: true
 ---
 
-![Okno przeglądarki z tabelą ofert pracy i licznikami statusów; jeden wiersz został wyjęty z tabeli i leży obok odwrócony treścią do dołu.](../../assets/images/zbudowalem-z-claudem-tracker-ofert-pracy-blue.png)
+![Postać w kapeluszu, widziana od tyłu, patrzy na okno przeglądarki z listą ofert pracy; jedno z ogłoszeń zasłania karteczka z napisem „software house”.](../../assets/images/zbudowalem-z-claudem-tracker-ofert-pracy-blue.png)
 
 Jakoś pod koniec lipca zacząłem rozglądać się za nową pracą. W pierwszym kroku, spisałem w miarę dokładnie, czego i kogo szukam:
 
