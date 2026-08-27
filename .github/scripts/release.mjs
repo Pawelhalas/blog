@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import {
   appendFileSync,
+  existsSync,
   mkdirSync,
   readFileSync,
   writeFileSync,
@@ -23,6 +24,7 @@ import {
   buildFrontmatter,
   heroImageMarkdown,
   isPublishedPost,
+  POSTS_DIR,
   slugOf,
   splitFrontmatter,
   stripFeatured,
@@ -271,7 +273,22 @@ const HERO_IN_BODY =
 
 async function main() {
   const base = mainRef();
-  const candidates = releaseCandidates("HEAD", base);
+  let candidates = releaseCandidates("HEAD", base);
+
+  // Reimaging a post that is already published finds no candidate, because the
+  // post is on main by then - which made [reimage] stop working at exactly the
+  // moment you most want it: after seeing the image live. The branch name is
+  // the fallback, since release/<slug> is the convention the trigger already
+  // relies on.
+  if (candidates.length === 0 && REIMAGE) {
+    const fromBranch = `${POSTS_DIR}/${BRANCH.replace(/^release\//, "")}.md`;
+    if (existsSync(fromBranch)) {
+      candidates = [fromBranch];
+      say(
+        `Reimage: no new post on this branch, using ${fromBranch} from the branch name.`
+      );
+    }
+  }
 
   if (candidates.length !== 1) {
     fail(
@@ -352,8 +369,23 @@ async function main() {
     existingFile ?? `${slug}-${background.split(" ").at(-1)}.png`;
   let image = null;
   let imageError = null;
+  let imageReused = false;
 
-  if (!GENERATE_IMAGE) {
+  // An image already previewed for this branch is reused rather than redrawn.
+  // gpt-image-1 is non-deterministic, so regenerating produced a different
+  // picture from the one reviewed - which made the dry-run preview worse than
+  // no preview, because it looked like a checkpoint and was not one. Reimaging
+  // deliberately skips this: a fresh picture is the whole point.
+  const previewPath = `${PREVIEW_DIR}/${imageFile}`;
+  if (!reimage && GENERATE_IMAGE && existsSync(previewPath)) {
+    image = readFileSync(previewPath);
+    imageReused = true;
+    say(`Reusing the previewed hero image from ${previewPath}.`);
+  }
+
+  if (image) {
+    // already have it
+  } else if (!GENERATE_IMAGE) {
     imageError =
       "image generation disabled for this run (GENERATE_IMAGE=false)";
   } else if (!process.env.OPENAI_API_KEY) {
@@ -406,7 +438,7 @@ async function main() {
     "### Hero image",
     "",
     image
-      ? `Generated at 1536×1024 (${IMAGE_QUALITY} quality), background **${background}**` +
+      ? `${imageReused ? "**Reused the image you already reviewed** on an earlier run of this branch" : `Generated at 1536×1024 (${IMAGE_QUALITY} quality)`}, background **${background}**` +
         (reimage
           ? " — unchanged, this is the same post."
           : ` — previous two were ${recentBackgrounds(log).join(", ") || "none"}.`) +
