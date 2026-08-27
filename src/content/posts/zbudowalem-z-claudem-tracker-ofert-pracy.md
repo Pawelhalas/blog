@@ -9,7 +9,7 @@ tags:
 Jakoś pod koniec lipca zacząłem rozglądać się za nową pracą. W pierwszym kroku, spisałem w miarę dokładnie, czego i kogo szukam:
 
 - *profil organizacji:* startup lub scale-up (nie więcej niż 300 osób) IT z Polski lub UE, budująca produkt (niekoniecznie w pełni cyfrowy) działający w modelu B2B;  może być SaaSem i/lub działać blisko ecommerce. 
-- *profil stanowiska*: product management, nie klasyczne zarządzanie projektami, nie product ownership. Orentacja na budowanie, a nie na pilnowanie backlogu. Mało biurokracji, team leadership opcjonalny ale absolutnie niekonieczny. Prowadzę zespoły w różnych konfiguracjach od ponad 13 lat, ale nigdy nie szukałem stanowisk liderskich - one po prostu zawsze jakoś do mnie trafiały.
+- *profil stanowiska*: product management, nie klasyczne zarządzanie projektami, nie product ownership. Orientacja na budowanie, a nie na pilnowanie backlogu. Mało biurokracji, team leadership opcjonalny ale absolutnie niekonieczny. Prowadzę zespoły w różnych konfiguracjach od ponad 13 lat, ale nigdy nie szukałem stanowisk liderskich - one po prostu zawsze jakoś do mnie trafiały.
 
 Mając zebrane oczekiwania, postanowiłem zautomatyzować proces poszukiwań z Claudem. Projekt zakładał 2 etapy:
 
@@ -18,7 +18,7 @@ Mając zebrane oczekiwania, postanowiłem zautomatyzować proces poszukiwań z C
 
 Pierwszy etap poszedł dość sprawnie:
 
-- Opaliłem projekt w Cowork'u, określiłem profil firm, w których pracy szukam.
+- Odpaliłem projekt w Cowork'u, określiłem profil firm, w których pracy szukam.
 - Wykorzystałem tu małe reverse-engineering, promptując do Claude'a z prośbą o zebranie ode mnie informacji o poszukiwanych organizacjach tak, by wyszukiwanie było jak najlepszej jakości. Wokół tego mechanizmu buduję sporo skilli i zazwyczaj działają one naprawdę dobrze.
 - Z początkowej grupy ~70 firm, powstała ostatecznie baza 239 organizacji. 
 - Mojemu idealnemu profilowi w pełni odpowiadało około 40-50 z nich, ale postanowiłem, że tracker będzie pracował na pełnej bazie. Nie wiedziałem w końcu, czy nie będę musiał trochę zrewidować swoich wyobrażeń, albo rozszerzyć zakresu poszukiwań na pracodawców lub stanowiska, na które pierwotnie nie planowałem aplikować.  
@@ -62,7 +62,7 @@ Może ich wygenerowanie nie kosztowało mnie szczególnie dużo, ale wciąż by�
 
 ### W toku swoich poszukiwań wysłałem łącznie 12 zgłoszeń.
 
-- Cztery z nich odrzucono niemal natychmiast - prawdopodobnie z automatu, napewno bez kontaktu ze mną. 
+- Cztery z nich odrzucono niemal natychmiast - prawdopodobnie z automatu, na pewno bez kontaktu ze mną. 
 - Jedno odrzucono po ok. 3 tygodniach ciszy, ale nie był to automat - odezwał się do mnie rekruter. 
 - Trzykrotnie zostałem bezczelnie zghostowany. Słabo. 
 - Wskoczyłem w 3 procesy.
@@ -75,7 +75,7 @@ I tu powinienem odpalić clickbaitowy header: *Napisałem z AI tak świetny trac
 
 Dlaczego? Bo w założeniach zbudowanego narzędzia nie uwzględniłem kilku niuansów, o których wystąpieniu Claude też mnie nie ostrzegł. A może ostrzegł, ale ja tego ostrzeżenia nie wyłapałem. 
 
-Przede wszystkim, organizacja do której dołączam została w pierwotnym researchu uznana za software house i nie trafiła do grona firm, do których miałem się zgłaszać. A chciałem, by tracker pomijał oferty z software house'ów, w których nigdy nie pracowałem i o specyfice działania których wiem niewiele. Nie było więc w moim automacie samej organizacji, ale tracker mógł i powinien dotrzeć do  oferty, gdyby uznał ją za pasującą do moich założeń. Ogłoszenie opublikowano na JJIT, a ja uwzględniłem przecież w mechaniźmie zarówno crawling w poszukiwaniu nowych publikacji, jak i o rozszerzanie listy firm o nowe, jeśli  ich oferty będą pasowały choćby częściowo odpowiadały moim opisom.
+Przede wszystkim, organizacja do której dołączam została w pierwotnym researchu uznana za software house i nie trafiła do grona firm, do których miałem się zgłaszać. A chciałem, by tracker pomijał oferty z software house'ów, w których nigdy nie pracowałem i o specyfice działania których wiem niewiele. Nie było więc w moim automacie samej organizacji, ale tracker mógł i powinien dotrzeć do  oferty, gdyby uznał ją za pasującą do moich założeń. Ogłoszenie opublikowano na JJIT, a ja uwzględniłem przecież w mechanizmie zarówno crawling w poszukiwaniu nowych publikacji, jak i o rozszerzanie listy firm o nowe, jeśli  ich oferty będą pasowały choćby częściowo odpowiadały moim opisom.
 
 I wszystko zadziałało zgodnie z planem. Operacja się udała, tylko pacjent zmarł. 
 
@@ -89,7 +89,7 @@ Kudos dla Was, JJIT! Macie lepsze profilowanie ode mnie!
 
 ### Wnioski z budowy trackera.
 
-1. Po pierwsze, praca z narzędziami AI nie zwalnia Cię z myślenia i nie zacznie mysleć za Ciebie. 
+1. Po pierwsze, praca z narzędziami AI nie zwalnia Cię z myślenia i nie zacznie myśleć za Ciebie. 
 
    Może trywialne, ale prawdziwe. Wiele mówi się o tym, że AI działa jak pojętny stażysta - ogarnie wszystko, czego będziesz od niego wymagać, ale jakość jego pracy będzie zależała od jakości Twojej komunikacji. W przypadku mojego trackera, ten scenariusz potwierdził się w 100%. Zwyczajnie nie przyszedł mi do głowy niuans rozróżnienia profilu produktu, czy marki od profilu firmy ten produkt budującej. Nie uwzględniłem też w *guardrailsach* weryfikacji wątpliwości ze mną. 
 
@@ -109,7 +109,7 @@ Ale mam kilka luźnych obserwacji ze swojego udziału w procesach rekrutacyjnych
 
 1. Hurtowe wysyłanie setek CV nie ma sensu, jeśli nie wiesz do jakich firm je wysyłasz i w zasadzie nie chcesz się tego dowiedzieć. 
 
-   Każdy z trzech procesów w którym brałem udział zaczynał się od screeningu, podczas którego rekruter upewniał się, że mam podstawową wiedzę o firmie, do której aplikowałem i faktycznie interesuję się podjęciem pracy w roli, na którą trwa rekturacja. Raz nawet zapytałem z czego wynika ta weryfikacja i usłyszałem, że coraz częściej kandydaci nieumiejętnie korzystają z możliwości aplikowania jednym kliknięciem (przez Linkedin czy JJIT) i w efekcie nie mają nawet pojęcia w jakich procesach biorą udział. 
+   Każdy z trzech procesów w którym brałem udział zaczynał się od screeningu, podczas którego rekruter upewniał się, że mam podstawową wiedzę o firmie, do której aplikowałem i faktycznie interesuję się podjęciem pracy w roli, na którą trwa rekrutacja. Raz nawet zapytałem z czego wynika ta weryfikacja i usłyszałem, że coraz częściej kandydaci nieumiejętnie korzystają z możliwości aplikowania jednym kliknięciem (przez Linkedin czy JJIT) i w efekcie nie mają nawet pojęcia w jakich procesach biorą udział. 
    Screening odsiewa takich gagatków w pierwszej kolejności. Będąc menadżerem rekrutującym osoby do swoich zespołów, nigdy nie natrafiłem na przypadek zdezorientowanego kandydata. Nie bez powodu. Rolą pierwszego screeningu jest między innymi ich wycięcie.  
 
 2. Linkedin to rak, z którego jednak trudno zrezygnować, jeśli szukasz pracy. 
