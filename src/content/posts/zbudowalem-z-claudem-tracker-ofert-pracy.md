@@ -1,10 +1,15 @@
 ---
 title: Zbudowałem z Claudem tracker ofert pracy, a dołączyłem do firmy, której ogłoszenie tracker przede mną ukrył.
-pubDatetime: 2026-08-27T08:00:00Z
-description: 
+description: Zbudowałem z Claudem tracker ofert pracy. Wykrył ich 50, a tę jedną, którą ostatecznie przyjąłem, intencjonalnie przede mną ukrył.
+pubDatetime: 2026-08-27T17:40:56Z
 tags:
-
+  - AI
+  - projekty
+  - rekrutacja
+featured: true
 ---
+
+![Okno przeglądarki z tabelą ofert pracy i licznikami statusów; jeden wiersz został wyjęty z tabeli i leży obok odwrócony treścią do dołu.](../../assets/images/zbudowalem-z-claudem-tracker-ofert-pracy-blue.png)
 
 Jakoś pod koniec lipca zacząłem rozglądać się za nową pracą. W pierwszym kroku, spisałem w miarę dokładnie, czego i kogo szukam:
 
