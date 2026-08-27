@@ -11,7 +11,6 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Card from "@/components/Card.astro";
-import LinkButton from "@/components/LinkButton.astro";
 import NoiseWord from "@/components/NoiseWord.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getUniqueTags } from "@/utils/getUniqueTags";
@@ -19,7 +18,7 @@ import { slugifyStr } from "@/utils/slugify";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
-const { site, posts: postsConfig } = config;
+const { posts: postsConfig } = config;
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
@@ -42,6 +41,7 @@ for (const post of sortedPosts) {
 }
 
 const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
+const postsHref = getRelativeLocaleUrl(locale, "posts");
 
 const aboutSummary =
   "Cześć! Mam na imię Paweł i jestem product managerem z Wrocławia. Zapisuję tu swoje obserwacje i doświadczenia w ramach walki o jasność umysłu w świecie pełnym komunikacyjnego szumu i AI slopu.";
@@ -147,7 +147,7 @@ const aboutSummary =
           </h2>
           <ul>
             {featuredPosts.map(data => (
-              <Card variant="h3" {...data} />
+              <Card variant="h3" layout="featured" {...data} />
             ))}
           </ul>
         </section>
@@ -157,23 +157,25 @@ const aboutSummary =
     {
       recentPosts.length > 0 && (
         <section id="recent-posts" class="pb-8">
-          <h2 class="font-data mb-2 text-[11px] tracking-[0.12em] lowercase">
-            {t.home.recentPosts}
+          {/*
+            The section label is the link to /posts, so the list needs no
+            trailing "All" button - one route to the archive, in the place the
+            reader is already looking.
+          */}
+          <h2 class="mb-2">
+            <a
+              href={postsHref}
+              class="font-data hover:text-accent inline-flex items-center gap-1.5 text-[11px] tracking-[0.12em] lowercase"
+            >
+              {t.nav.posts}
+              <IconArrowRight width={12} height={12} class="rtl:-rotate-180" />
+            </a>
           </h2>
           <ul>
             {recentPosts.slice(0, postsConfig.perIndex).map(data => (
               <Card variant="h3" {...data} />
             ))}
           </ul>
-          <div class="mt-6">
-            <LinkButton
-              href={getRelativeLocaleUrl(locale, "posts")}
-              class="font-data hover:text-accent inline-flex items-center gap-2 text-[11px] tracking-[0.12em]"
-            >
-              {t.home.allPosts}
-              <IconArrowRight width={14} height={14} class="rtl:-rotate-180" />
-            </LinkButton>
-          </div>
         </section>
       )
     }

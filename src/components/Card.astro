@@ -14,8 +14,11 @@ type Props = {
    * "rich" adds the hero thumbnail and the share menu, and makes the whole
    * row a click target. Scoped to /posts by decision on 2026-08-19 - the
    * homepage stays deliberately dense and thumbnail-free.
+   * "featured" is the homepage's single highlighted post: a large hero image
+   * beside a display-size title. It is one block, not a row in a list, which
+   * is what earns it the extra weight without turning into a card.
    */
-  layout?: "compact" | "rich";
+  layout?: "compact" | "rich" | "featured";
 } & CollectionEntry<"posts">;
 
 const { variant: Heading = "h2", layout = "compact", ...post } = Astro.props;
@@ -25,9 +28,11 @@ const { title, description, ...props } = data;
 
 const href = getPostUrl(id, filePath, Astro.currentLocale);
 const isRich = layout === "rich";
-const hero = isRich
-  ? getHeroImage(post as CollectionEntry<"posts">)
-  : undefined;
+const isFeatured = layout === "featured";
+const hero =
+  isRich || isFeatured
+    ? getHeroImage(post as CollectionEntry<"posts">)
+    : undefined;
 const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
 ---
 
@@ -43,7 +48,12 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
   held apart by spacing and the date column's alignment alone.
 */
 }
-<li class:list={["post-row", { "post-row--rich": isRich }]}>
+<li
+  class:list={[
+    "post-row",
+    { "post-row--rich": isRich, "post-row--featured": isFeatured },
+  ]}
+>
   {
     /* Wrapped rather than styled directly: grid-area has to land on an element
       this component owns, not on one a child renders. */
@@ -59,12 +69,22 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
     >
       <Heading
         transition:name={toTransitionName(id)}
-        class="text-lg leading-snug font-medium"
+        class:list={[
+          "font-medium",
+          isFeatured
+            ? "text-2xl leading-tight sm:text-[1.75rem]"
+            : "text-lg leading-snug",
+        ]}
       >
         {title}
       </Heading>
     </a>
-    <p class="text-muted-foreground mt-1 text-base leading-relaxed">
+    <p
+      class:list={[
+        "text-muted-foreground leading-relaxed",
+        isFeatured ? "mt-2 max-w-[60ch] text-base" : "mt-1 text-base",
+      ]}
+    >
       {description}
     </p>
 
@@ -83,9 +103,13 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
         <Image
           src={hero.image}
           alt={hero.alt}
-          widths={[144, 288]}
-          sizes="(min-width: 640px) 9rem, 7rem"
-          loading="lazy"
+          widths={isFeatured ? [672, 1008, 1344] : [144, 288]}
+          sizes={
+            isFeatured
+              ? "(min-width: 640px) 42rem, 100vw"
+              : "(min-width: 640px) 9rem, 7rem"
+          }
+          loading={isFeatured ? "eager" : "lazy"}
           class="border-border w-full rounded-[2px] border object-cover"
         />
       </div>
@@ -108,6 +132,23 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
     grid-template-areas: "date body thumb";
   }
 
+  /* Featured. The reference layout puts the image beside the headline, but the
+     measure here is 768px: minus the date column that leaves ~280px of text,
+     and a 28px Polish headline wraps to five lines in it. So the image sits
+     above the text instead, both in the body column so the date column still
+     aligns (rule 5). Emphasis comes from size and space only: no fill, no
+     shadow, no frame beyond the 0.5px the image already carries. */
+  .post-row--featured {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "date"
+      "thumb"
+      "body";
+    row-gap: 0.9rem;
+    padding-block: 0.5rem 1.75rem;
+  }
+
   .post-row__date {
     grid-area: date;
     padding-top: 0.4rem;
@@ -125,9 +166,21 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
     aspect-ratio: 16 / 9;
   }
 
+  .post-row--featured .post-row__date {
+    padding-top: 0;
+  }
+  /* Capped rather than full-bleed: at the 768px measure an unconstrained 16:9
+     image runs 355px tall and pushes the headline under the fold, which is the
+     opposite of highlighting the post. */
+  .post-row--featured .post-row__thumb {
+    width: 100%;
+    max-width: 32rem;
+  }
+
   /* Whole-row click target. Sits under the share menu, which lifts itself
      with its own z-index. */
-  .post-row--rich .post-row__link::after {
+  .post-row--rich .post-row__link::after,
+  .post-row--featured .post-row__link::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -143,6 +196,21 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
     }
     .post-row__thumb {
       width: 9rem;
+    }
+
+    .post-row--featured {
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      grid-template-areas:
+        "date thumb"
+        ".    body";
+      column-gap: 2rem;
+      row-gap: 1.25rem;
+    }
+    .post-row--featured .post-row__date {
+      padding-top: 0.4rem;
+    }
+    .post-row--featured .post-row__thumb {
+      align-self: start;
     }
   }
 

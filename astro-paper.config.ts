@@ -14,7 +14,9 @@ export default defineAstroPaperConfig({
   },
   posts: {
     perPage: 4,
-    perIndex: 4,
+    // Homepage list under "posts >". Up to 10 most recent, the featured post
+    // excluded (it has its own block above).
+    perIndex: 10,
     scheduledPostMargin: 15 * 60 * 1000,
   },
   features: {
