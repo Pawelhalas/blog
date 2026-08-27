@@ -7,11 +7,16 @@ import {
 } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { z } from "zod";
 
-import { ask, askLong, parseJson } from "./lib/claude.mjs";
+import { askStructured } from "./lib/claude.mjs";
 import { git, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
 import { buildPrompt, generateImage } from "./lib/image.mjs";
-import { guard, loadAllowlist } from "./lib/orthography.mjs";
+import {
+  applyCorrections,
+  loadAllowlist,
+  verifyCorrections,
+} from "./lib/orthography.mjs";
 import {
   ASSETS_DIR,
   assertNoTyporaEscape,
@@ -109,8 +114,23 @@ function tagInventory(ref) {
     .join("\n");
 }
 
+/**
+ * Schema-enforced so the transport cannot fail on the content. See the note in
+ * lib/claude.mjs: Polish typographic quotes inside `tagReasoning` broke raw
+ * JSON parsing on the first real post.
+ */
+const MetadataSchema = z.object({
+  description: z.string(),
+  tags: z.array(z.string()),
+  newTags: z.array(z.object({ tag: z.string(), closest: z.string() })),
+  tagReasoning: z.string(),
+  imageSubject: z.string(),
+  imageAlt: z.string(),
+});
+
 async function describeAndTag({ title, body, rules, inventory }) {
-  const raw = await ask({
+  const meta = await askStructured({
+    schema: MetadataSchema,
     system:
       "You prepare frontmatter for a personal blog written by Pawel Halas, a product owner in Wrocław. " +
       "Posts are written in Polish or English, never both — always answer in the language the post itself is written in. " +
@@ -134,8 +154,6 @@ async function describeAndTag({ title, body, rules, inventory }) {
       "",
       "## What to return",
       "",
-      "A single JSON object, no prose around it and no markdown fence, with these keys:",
-      "",
       "- `description` — 160 characters or fewer. A sentence, not a label; it is both the SEO meta description and the text on the generated OG image. Same language as the post.",
       "- `tags` — an array of 2 or 3 tags obeying the rules above. Prefer reusing a tag from the inventory.",
       '- `newTags` — an array naming any tag you invented that is not in the inventory, each with the closest existing tag: `[{"tag": "...", "closest": "..."}]`. Empty array if you reused everything.',
@@ -145,13 +163,10 @@ async function describeAndTag({ title, body, rules, inventory }) {
     ].join("\n"),
   });
 
-  const meta = parseJson(raw, "post metadata");
-  if (
-    !meta.description ||
-    !Array.isArray(meta.tags) ||
-    meta.tags.length === 0
-  ) {
-    fail(`metadata response was missing description or tags:\n${raw}`);
+  if (!meta.description || meta.tags.length === 0) {
+    fail(
+      `metadata came back without a description or tags:\n${JSON.stringify(meta, null, 2)}`
+    );
   }
   if (meta.description.length > 160) {
     fail(
@@ -161,35 +176,56 @@ async function describeAndTag({ title, body, rules, inventory }) {
   return meta;
 }
 
+/**
+ * A list of corrections, never the post itself. The model cannot rewrite prose
+ * it is never asked to reproduce — see the note in lib/orthography.mjs.
+ */
+const CorrectionsSchema = z.object({
+  corrections: z.array(
+    z.object({
+      before: z.string(),
+      after: z.string(),
+      reason: z.string(),
+    })
+  ),
+});
+
 async function orthography(body) {
-  const corrected = await askLong({
+  const { corrections } = await askStructured({
+    schema: CorrectionsSchema,
     system:
-      "You are a proofreader for Polish and English text. You fix orthography ONLY: spelling, " +
-      "diacritics, and obvious typos. You never rewrite, reorder, shorten, lengthen, or improve " +
-      "anything. You never change punctuation, style, word choice, or grammar. If a word is " +
-      "spelled correctly, you leave it exactly as it is.",
+      "You are a proofreader for Polish and English text. You find orthography errors only: " +
+      "misspellings, missing or wrong diacritics, and obvious typos. You do not comment on " +
+      "style, word choice, grammar, punctuation or structure, and you never suggest rewording. " +
+      "If the text has no orthography errors you return an empty list, which is a normal and " +
+      "expected answer.",
     prompt: [
-      "Return the text below with orthography errors corrected and nothing else changed.",
+      "Find the orthography errors in the text below.",
       "",
-      "Hard constraints — the output is checked mechanically against all of these and discarded if any fails:",
+      "Return one entry per misspelled word:",
       "",
-      "- Exactly the same number of paragraphs.",
-      "- Exactly the same number of words in every paragraph.",
-      "- Every difference must be a single whole word replaced by a single whole word.",
-      "- Leave fenced code blocks, URLs, link and image targets, and markdown syntax untouched.",
-      "- Leave proper nouns and product names alone (Anthropic, Amodei, Minab, Claude Code, ...).",
+      "- `before` — the word exactly as it appears in the text, one word, no surrounding punctuation.",
+      "- `after` — the correctly spelled word, one word.",
+      '- `reason` — a few words on what is wrong, in the language of the text (e.g. "brak ogonka").',
       "",
-      "Return only the corrected text. No commentary, no fence around it.",
+      "Rules:",
+      "",
+      "- One whole word in, one whole word out. Never a phrase, never a sentence.",
+      "- Only real orthography errors. A word spelled correctly is not an entry, even if you would have chosen a different word.",
+      "- Ignore code, URLs, file paths and markdown syntax.",
+      "- Ignore proper nouns and product names (Anthropic, Amodei, Minab, Claude Code, ...).",
+      "- Do not reproduce the text. Only the list.",
       "",
       "---",
       "",
       body,
     ].join("\n"),
+    maxTokens: 8000,
   });
 
-  return guard(
+  return verifyCorrections(
     body,
-    corrected,
+    corrections,
     loadAllowlist(resolve(HERE, "term-allowlist.txt"))
   );
 }
@@ -199,8 +235,14 @@ async function orthography(body) {
  * not ready": the frontmatter is already settled and re-deriving it would churn
  * a diff Pawel has already read. So only the image brief is recomputed.
  */
+const ImageBriefSchema = z.object({
+  imageSubject: z.string(),
+  imageAlt: z.string(),
+});
+
 async function imageBrief({ title, body }) {
-  const raw = await ask({
+  const meta = await askStructured({
+    schema: ImageBriefSchema,
     system:
       "You brief an illustrator for a personal blog. You describe what to draw. " +
       "You never comment on the writing.",
@@ -211,16 +253,15 @@ async function imageBrief({ title, body }) {
       "",
       body,
       "",
-      "Return a single JSON object, no prose and no markdown fence, with:",
+      "Provide:",
       "",
       "- `imageSubject` — the single most concrete image in the post, as a short visual description in English. A thing that can be drawn, not a concept. Subject only: no style, no background, no colour. Pick a different angle from the obvious one.",
       "- `imageAlt` — alt text for that illustration, in the language of the post. It describes the picture, not the post.",
     ].join("\n"),
   });
 
-  const meta = parseJson(raw, "image brief");
   if (!meta.imageSubject || !meta.imageAlt) {
-    fail(`image brief was missing imageSubject or imageAlt:\n${raw}`);
+    fail(`image brief came back incomplete:\n${JSON.stringify(meta, null, 2)}`);
   }
   return meta;
 }
@@ -344,8 +385,8 @@ async function main() {
   // he reads the diff. Turning it on applies only the findings that survived
   // the guard — never the model's text wholesale.
   const proofread =
-    APPLY_ORTHOGRAPHY && language?.ok && language.findings.length > 0
-      ? language.applied
+    APPLY_ORTHOGRAPHY && language?.accepted.length
+      ? applyCorrections(body, language.accepted)
       : body;
 
   let finalBody = proofread;
@@ -411,17 +452,18 @@ async function main() {
           "",
           "### Orthography",
           "",
-          language.ok
-            ? language.findings.length
-              ? `${language.findings.length} finding(s). ${APPLY_ORTHOGRAPHY ? "Applied." : "**Not applied** — apply the ones you agree with while reviewing the diff."}\n\n` +
-                "| ¶ | Written | Suggested |\n|---|---|---|\n" +
-                language.findings
-                  .map(f => `| ${f.paragraph} | ${f.before} | ${f.after} |`)
-                  .join("\n")
-              : "No orthography findings."
-            : `⚠️ Discarded — the proofreading pass came back structurally different (${language.reason}), which means it rewrote rather than corrected. Nothing was applied and no findings are reported.`,
-          language.ok && language.rejected?.length
-            ? `\n${language.rejected.length} suggestion(s) dropped by the guard as not-prose or allowlisted: ${language.rejected.map(r => `\`${r.before}\` → \`${r.after}\` (${r.why})`).join(", ")}.`
+          language.accepted.length
+            ? `${language.accepted.length} finding(s). ${APPLY_ORTHOGRAPHY ? "Applied." : "**Not applied** \u2014 apply the ones you agree with while reviewing the diff."}\n\n` +
+              "| \u00b6 | Written | Suggested | Why |\n|---|---|---|---|\n" +
+              language.accepted
+                .map(
+                  f =>
+                    `| ${f.paragraph} | \`${f.before}\` | \`${f.after}\` | ${f.reason}${f.occurrences > 1 ? ` (\u00d7${f.occurrences})` : ""} |`
+                )
+                .join("\n")
+            : "No orthography findings.",
+          language.rejected.length
+            ? `\n${language.rejected.length} suggestion(s) dropped by the guard: ${language.rejected.map(r => `\`${r.before}\` \u2192 \`${r.after}\` (${r.why})`).join(", ")}.`
             : "",
         ]
   ).join("\n");
