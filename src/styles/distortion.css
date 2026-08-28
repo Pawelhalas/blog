@@ -1201,6 +1201,17 @@
   }
 }
 
+/* Shown only once the reader switches the noise off. visibility, not display:
+   the element keeps its box either way, so nothing below it moves when the
+   state flips. Hidden visibility also takes it out of the a11y tree, so it is
+   not announced while it is not shown. */
+.noise-off-only {
+  visibility: hidden;
+}
+[data-noise="off"] .noise-off-only {
+  visibility: visible;
+}
+
 /* calm: static mark, noise switched off, or reduced motion */
 .noise-word.is-calm .nb1,
 [data-noise="off"] .noise-word .nb1 {

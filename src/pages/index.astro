@@ -84,7 +84,20 @@ const aboutSummary =
           wyłącz szum
         </button>
       </div>
-      <h1 class="mt-6 text-center text-[clamp(2.25rem,9vw,4.5rem)] sm:mt-4">
+      {
+        /*
+        The other half of the site's line, held back until the reader switches
+        the noise off - the quiet state is the one that gets to say it. Set
+        like a section label, and hidden with visibility rather than display so
+        the wordmark below does not jump when the state flips.
+      */
+      }
+      <p
+        class="noise-off-only font-data mt-6 text-center text-[11px] tracking-[0.12em] lowercase sm:mt-4"
+      >
+        więcej hałasu
+      </p>
+      <h1 class="mt-3 text-center text-[clamp(2.25rem,9vw,4.5rem)]">
         <NoiseWord variant="hero" />
       </h1>
       <div class="mt-8 flex justify-center">
