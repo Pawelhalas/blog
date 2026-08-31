@@ -13,8 +13,8 @@ name: Cadence
 # itself off during exactly the quiet stretch it exists to interrupt — and
 # GitHub emails the owner when it does. Once WRITE_ENABLED is on this mostly
 # self-heals: a logged miss commits to main every cadence period, which is
-# repository activity. Until then, nothing here writes, so nothing keeps the
-# schedule alive.
+# repository activity. WRITE_ENABLED went on 2026-08-31 for exactly this
+# reason — a miss lands every 14 days, well inside the 60-day window.
 
 on:
   schedule:
@@ -38,10 +38,10 @@ permissions:
   issues: write
 
 env:
-  # Ships off. Turn on only after the notification-only phase has run clean
-  # (build plan steps 3-4). The only thing it gates is writing a logged miss
-  # back to .github/release-log.json.
-  WRITE_ENABLED: "false"
+  # On since 2026-08-31, after the notification-only phase ran clean (build plan
+  # steps 3-4). The only thing it gates is writing a logged miss back to
+  # .github/release-log.json.
+  WRITE_ENABLED: "true"
 
 jobs:
   check:
