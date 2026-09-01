@@ -85,8 +85,9 @@ jobs:
       # So an image already previewed for this branch is pulled back in and
       # reused. [reimage] skips this deliberately; drawing something new is the
       # entire point of it.
-      - name: "♻️ Reuse a hero image already previewed for this branch"
-        if: ${{ !contains(github.event.head_commit.message, '[reimage]') }}
+      # Always pulled back. Which parts get used is decided in the script,
+      # from the commit SUBJECT line only - see COMMIT_MESSAGE below.
+      - name: "♻️ Reuse what was already generated for this branch"
         run: |
           set -uo pipefail
           for r in $(gh run list --workflow=release.yml --branch "$GITHUB_REF_NAME" \
@@ -116,9 +117,14 @@ jobs:
           GENERATE_IMAGE_INPUT: ${{ inputs.generate_image }}
           IMAGE_QUALITY: ${{ env.IMAGE_QUALITY }}
           APPLY_ORTHOGRAPHY: ${{ env.APPLY_ORTHOGRAPHY }}
-          # "Image is valid but wrong": push an empty commit whose message
-          # contains [reimage]. Only the image step reruns.
-          REIMAGE: ${{ contains(github.event.head_commit.message, '[reimage]') }}
+          # The escape hatches are read from the commit SUBJECT line, in the
+          # script, not matched against the whole message here.
+          #
+          # They used to be matched against the entire message, which meant a
+          # commit that merely *mentioned* a marker fired it. That is not
+          # hypothetical: the commit which introduced this comment explained
+          # what the markers do, and thereby triggered one of them.
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
       # A dry run writes nothing, so the hero image it generated (and paid for)
       # would otherwise vanish with the runner. On a real run the image is

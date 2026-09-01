@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   appendFileSync,
   existsSync,
@@ -54,6 +55,44 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PREVIEW_DIR = "dry-run-preview";
 
 /**
+ * Generated metadata is cached per branch, alongside the hero image.
+ *
+ * Without this the pipeline re-derived the description and tags on every push,
+ * and the model answers differently each time - so what you read in a rehearsal
+ * was not what landed in the pull request. Exactly the failure that put an
+ * unapproved illustration on the blog, which #38 fixed for the picture only.
+ *
+ * Two different scopes, deliberately:
+ *
+ *   metadata    keyed to the BRANCH. It describes the post as a whole and you
+ *               have already read it, so a typo fix must not silently rewrite
+ *               it. If the body moved since it was generated, the report says
+ *               so and [remeta] regenerates on demand.
+ *
+ *   orthography keyed to the CONTENT. Its findings point at particular words,
+ *               so they have to track the current text; regenerating is both
+ *               correct and the cheaper of the two calls.
+ */
+const CACHE_PATH = `${PREVIEW_DIR}/generated.json`;
+
+const contentKey = (title, body) =>
+  createHash("sha256").update(`${title}\n${body}`).digest("hex").slice(0, 16);
+
+function readCache() {
+  if (!existsSync(CACHE_PATH)) return null;
+  try {
+    return JSON.parse(readFileSync(CACHE_PATH, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(entry) {
+  mkdirSync(PREVIEW_DIR, { recursive: true });
+  writeFileSync(CACHE_PATH, `${JSON.stringify(entry, null, 2)}\n`);
+}
+
+/**
  * A workflow_dispatch input wins over the workflow's default; an empty string
  * means the event carried no input. Resolved here rather than in a GitHub
  * expression, where `inputs.dry_run || 'true'` treats an explicit `false` as
@@ -64,7 +103,17 @@ const setting = (input, fallback) =>
 
 const DRY_RUN = setting("DRY_RUN_INPUT", "DRY_RUN_DEFAULT") !== "false";
 const GENERATE_IMAGE = setting("GENERATE_IMAGE_INPUT", "") !== "false";
-const REIMAGE = process.env.REIMAGE === "true";
+/**
+ * Escape hatches, read from the commit SUBJECT line only.
+ *
+ * Matching the whole message meant a commit that merely mentioned a marker
+ * fired it — which happened for real: a commit explaining what the markers do
+ * triggered one. The subject line is where an instruction belongs; the body is
+ * where you write about it.
+ */
+const SUBJECT = (process.env.COMMIT_MESSAGE || "").split("\n")[0];
+const REIMAGE = /\[reimage\]/i.test(SUBJECT);
+const REMETA = /\[remeta\]/i.test(SUBJECT);
 const APPLY_ORTHOGRAPHY = process.env.APPLY_ORTHOGRAPHY === "true";
 const IMAGE_QUALITY = process.env.IMAGE_QUALITY || "medium";
 const BRANCH =
@@ -330,16 +379,46 @@ async function main() {
 
   const log = readLog();
 
-  const meta = reimage
-    ? await imageBrief({ title, body })
-    : await describeAndTag({
-        title,
-        body,
-        rules: tagRules(),
-        inventory: tagInventory(base),
-      });
+  const key = contentKey(title, body);
+  const cache = reimage || REMETA ? null : readCache();
 
-  const language = reimage ? null : await orthography(body);
+  let metaReused = false;
+  let contentMovedSince = false;
+  let meta;
+
+  if (reimage) {
+    meta = await imageBrief({ title, body });
+  } else if (cache?.meta) {
+    meta = cache.meta;
+    metaReused = true;
+    contentMovedSince = cache.key !== key;
+    say(
+      contentMovedSince
+        ? "Reusing the metadata you already reviewed — but the post has changed since."
+        : "Reusing the metadata generated earlier on this branch."
+    );
+  } else {
+    meta = await describeAndTag({
+      title,
+      body,
+      rules: tagRules(),
+      inventory: tagInventory(base),
+    });
+  }
+
+  // Orthography follows the text, not the branch: its findings name particular
+  // words, so a changed body has to be re-read.
+  let language = null;
+  if (!reimage) {
+    if (cache?.language && cache.key === key) {
+      language = cache.language;
+      say("Reusing the orthography findings for this text.");
+    } else {
+      language = await orthography(body);
+    }
+  }
+
+  if (!reimage) writeCache({ key, meta, language });
 
   // Exactly one post is featured at a time. index.astro splits the homepage
   // into featuredPosts and recentPosts, so featuring everything empties the
@@ -466,6 +545,12 @@ async function main() {
           "```yaml",
           frontmatter.replace(/^---\n|---\n$/g, "").trim(),
           "```",
+          "",
+          metaReused
+            ? contentMovedSince
+              ? "> ⚠️ **The post changed after this metadata was generated.** The description and tags below are the ones you already reviewed, reused deliberately so a typo fix cannot silently rewrite them. If the edit was substantial, push an empty commit containing `[remeta]` to regenerate."
+              : "_Description and tags reused from the earlier run on this branch — what you reviewed is what ships._"
+            : "",
           "",
           `**Tags** — ${meta.tagReasoning ?? "no reasoning given"}`,
           meta.newTags?.length
