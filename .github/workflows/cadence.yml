@@ -18,13 +18,16 @@ name: Cadence
 
 on:
   schedule:
-    # ~07:00 UTC = ~09:00 CEST, before the working day starts.
+    # Asked for 07:17 UTC. Do not read that as a delivery time.
     #
-    # :17 rather than :00 deliberately. GitHub's docs: "the schedule event can
-    # be delayed during periods of high loads of GitHub Actions workflow runs.
-    # High load times include the start of every hour", and badly delayed runs
-    # can be dropped outright. Nothing here is time-critical to the minute, and
-    # an off-peak minute is free.
+    # Measured 25-31 August 2026, this fired every single day but between 0.7
+    # and 12.1 hours late, with gaps of 17.7 to 34.3 hours between runs. The
+    # cadence logic is unaffected because its boundary is computed in UTC
+    # calendar days, never in hours - but nothing here may assume the nag
+    # arrives in the morning, because most days it does not.
+    #
+    # :17 rather than :00 because GitHub's docs name the top of every hour as a
+    # high-load window. On this evidence it buys less than hoped.
     - cron: "17 7 * * *"
   workflow_dispatch:
     inputs:

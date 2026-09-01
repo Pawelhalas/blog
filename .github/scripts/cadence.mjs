@@ -37,7 +37,52 @@ function summary(markdown) {
 const gh = (...args) =>
   execFileSync("gh", args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
 
-/** UTC calendar days, so a cron at 07:00 UTC doesn't round a due date sideways. */
+/**
+ * How long since the previous scheduled run, in hours, or null if unknown.
+ *
+ * Measured 25-31 August, GitHub's cron fired every single day but between 0.7
+ * and 12.1 hours after the 07:17 it was asked for, with gaps between runs of
+ * 17.7 to 34.3 hours. Reliable in occurrence, unreliable in timing.
+ *
+ * The cadence logic is unaffected, because the boundary is computed in UTC
+ * calendar days rather than hours - but a gap well outside that range means
+ * runs were dropped, and nothing else in the system would ever say so.
+ *
+ * Honest limitation: this notices an outage after it ends, never during one.
+ * Nothing running inside the thing being watched can do better. An external
+ * check is the only real answer to "it stopped and stayed stopped", and for a
+ * fortnightly blog that is probably not worth another dependency.
+ */
+function hoursSincePreviousRun() {
+  try {
+    const runs = JSON.parse(
+      gh(
+        "run",
+        "list",
+        "--workflow=cadence.yml",
+        "--event=schedule",
+        "--limit",
+        "8",
+        "--json",
+        "createdAt"
+      )
+    );
+    // This run may already be listed; ignore anything from the last few minutes.
+    const cutoff = Date.now() - 5 * 60 * 1000;
+    const previous = runs
+      .map(r => Date.parse(r.createdAt))
+      .filter(t => t < cutoff)
+      .sort((a, b) => b - a)[0];
+    return previous ? (Date.now() - previous) / 3600000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Beyond this, the schedule has skipped days rather than merely drifted. */
+const GAP_ALARM_HOURS = 48;
+
+/** UTC calendar days, so a late cron doesn't round a due date sideways. */
 const utcDay = value => Math.floor(Date.parse(value) / DAY_MS);
 
 /**
@@ -93,9 +138,17 @@ function main() {
   const daysUntilDue = utcDay(dueAt) - utcDay(new Date().toISOString());
   const dueDate = dueAt.slice(0, 10);
 
+  const gapHours = hoursSincePreviousRun();
+  const gapOverdue = gapHours !== null && gapHours > GAP_ALARM_HOURS;
+
   summary(
     [
       `**Last published:** ${published.posts.join(", ")} on ${published.date.slice(0, 10)} (\`${published.sha.slice(0, 7)}\`)`,
+      gapHours === null
+        ? null
+        : gapOverdue
+          ? `**⚠️ Previous scheduled check was ${gapHours.toFixed(0)}h ago** — normal is 18–34h, so the schedule skipped at least a day.`
+          : `**Previous scheduled check:** ${gapHours.toFixed(0)}h ago`,
       lastMiss
         ? `**Clock last restarted by a miss:** ${lastMiss.slice(0, 10)}`
         : null,
@@ -135,6 +188,12 @@ function main() {
         "```",
         "",
         `If nothing has shipped by the end of ${dueDate}, a miss is logged and the clock restarts. Closing this issue does not stop that.`,
+        ...(gapOverdue
+          ? [
+              "",
+              `> ⚠️ The previous scheduled check ran ${gapHours.toFixed(0)} hours ago. Normal is 18–34, so the schedule skipped at least a day and this reminder may be later than it looks.`,
+            ]
+          : []),
       ].join("\n")
     );
     return;
