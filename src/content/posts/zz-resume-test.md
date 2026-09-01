@@ -1,7 +1,7 @@
 ---
 title: Test wznawiania potoku
 description: "Krótki wpis testowy: sprawdzam, czy przebieg przerwany między commitem a otwarciem pull requesta można dokończyć kolejnym uruchomieniem."
-pubDatetime: 2026-09-01T10:23:49Z
+pubDatetime: 2026-09-01T10:25:21Z
 tags:
   - projekty
   - testy
