@@ -46,3 +46,38 @@ export function writeMode({ writeEnabled, dryRun }) {
       (blockedBy === null ? "writes ENABLED" : `writes BLOCKED (${blockedBy})`),
   };
 }
+
+/**
+ * Whether a script may open, close or comment on a GitHub issue.
+ *
+ * Opening an issue is a side effect too, and it was gated on `DRY_RUN` alone —
+ * the same hole `writeMode` was built to close, one door along. That is how
+ * issue #47 came to exist: a local run with `DRY_RUN` unset emailed Pawel about
+ * a missed deadline that never happened, and the issue outlived the revert of
+ * the commit it was describing.
+ *
+ * `WRITE_ENABLED` deliberately does **not** gate this, which is the one place
+ * notifications differ from writes. Observation mode is supposed to nag: the
+ * cadence check ran for its first weeks with `WRITE_ENABLED=false` precisely so
+ * it would notify without touching the log, and that was the point of it.
+ *
+ * So: per-run intent still silences it, and CI is still the only place allowed
+ * to act on the outside world.
+ */
+export function notifyMode({ dryRun }) {
+  const blockedBy = dryRun
+    ? "DRY_RUN is on"
+    : !IN_CI
+      ? "not running in GitHub Actions"
+      : null;
+
+  return {
+    may: blockedBy === null,
+    blockedBy,
+    banner:
+      `issues: DRY_RUN=${dryRun} IN_CI=${IN_CI} → ` +
+      (blockedBy === null
+        ? "issue changes ENABLED"
+        : `issue changes BLOCKED (${blockedBy})`),
+  };
+}

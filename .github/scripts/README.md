@@ -29,18 +29,23 @@ permalink** — choose it before publishing, because renaming later breaks the U
 
 ## Switches
 
-Each workflow has an `env:` block at the top holding its own switches. They ship
-in the safe position; flip them there, not in the scripts.
+Each workflow has an `env:` block at the top holding its own switches. Flip them
+there, not in the scripts.
 
-| Switch              | Where                             | Ships as | Turning it on                                                      |
-| ------------------- | --------------------------------- | -------- | ------------------------------------------------------------------ |
-| `WRITE_ENABLED`     | `cadence.yml`, `post-publish.yml` | `false`  | Lets them commit to `main`                                         |
-| `DRY_RUN_DEFAULT`   | `release.yml`                     | `true`   | Lets the pipeline write, commit and open a PR                      |
-| `APPLY_ORTHOGRAPHY` | `release.yml`                     | `false`  | Applies guarded orthography fixes instead of only reporting them   |
-| `IMAGE_QUALITY`     | `release.yml`                     | `medium` | `low` / `medium` / `high` — roughly $0.02 / $0.06 / $0.25 an image |
+| Switch              | Where                             | Set to   | What that means                                                       |
+| ------------------- | --------------------------------- | -------- | --------------------------------------------------------------------- |
+| `WRITE_ENABLED`     | `cadence.yml`, `post-publish.yml` | `true`   | They may commit to `main`. Off means observe-only, but they still nag |
+| `DRY_RUN_DEFAULT`   | `release.yml`                     | `false`  | A push to `release/**` is a real run: it commits and opens the PR     |
+| `APPLY_ORTHOGRAPHY` | `release.yml`                     | `false`  | Findings go in the PR body. On, they are applied under the guard      |
+| `IMAGE_QUALITY`     | `release.yml`                     | `medium` | `low` / `medium` / `high` — roughly $0.02 / $0.06 / $0.25 an image    |
 
 `release.yml` and `cadence.yml` also take `workflow_dispatch` inputs that
-override the defaults for a single manual run.
+override the defaults for a single manual run. Both default `dry_run` to
+**true**, so a manual dispatch is a rehearsal unless you say otherwise — the
+opposite of a push, which is a real run.
+
+Nothing here can write from a laptop. Every commit, push and issue change also
+requires `GITHUB_ACTIONS=true`; see `lib/mode.mjs` for why that backstop exists.
 
 ## Secrets
 
@@ -83,6 +88,22 @@ reuses it. What you approve is what ships. `[reimage]` is the deliberate
 exception — it ignores the preview and draws something new, which is the whole
 point of it.
 
+## Cadence issues close themselves
+
+The daily check reconciles the issue list against the window it just computed,
+rather than only opening things. Any issue titled `Cadence: publish by <date>`
+or `Cadence missed: <date>` that is not the current window gets closed with a
+comment. Issues you opened yourself are never touched — the match is on those
+two title shapes.
+
+That makes it self-healing: a nag goes away on the next daily run whatever made
+it stale, whether that was a publish, a revert of a logged miss, or a hand-edited
+log. It matters because the issue list and `release-log.json` disagreeing is
+worse than having no issue list, and the log is the one that is right.
+
+Closing a nag by hand still does not dismiss it — the next run reopens it,
+because the window really is still open. Publish, or wait for the miss.
+
 ## Constraints worth knowing before editing these scripts
 
 - The hero image is the **first markdown image in the body**, not a frontmatter
@@ -91,7 +112,10 @@ point of it.
 - Alt text is also the `/posts` thumbnail alt, so it describes the picture, not
   the post.
 - `.prettierignore` whitelists `/.github`, so everything here is format-checked
-  by `ci.yml`. Run `pnpm run format` after editing.
+  by `ci.yml`. Run `npm run format` **from the repo root** after editing — this
+  folder is its own pnpm root but has no `format` script of its own.
+- The scripts resolve paths from the repo root, so run them from there
+  (`node .github/scripts/cadence.mjs`), not from inside this folder.
 - This folder is its own pnpm root, not part of the site's project — that is
   what `pnpm-workspace.yaml` here is for. It keeps the Anthropic SDK out of the
   site's lockfile and stops it being installed on every CI build of the site.
