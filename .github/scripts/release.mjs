@@ -14,6 +14,8 @@ import { z } from "zod";
 import { askStructured } from "./lib/claude.mjs";
 import { git, IN_CI, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
 import { buildPrompt, generateImage } from "./lib/image.mjs";
+import { notifyMode } from "./lib/mode.mjs";
+import { LABELS, raise } from "./lib/notify.mjs";
 import {
   applyCorrections,
   loadAllowlist,
@@ -41,12 +43,17 @@ import {
 /**
  * The per-post release pipeline.
  *
- * Removing the underscore on a `release/**` branch is the publish signal. From
- * there everything mechanical happens here, and merging the pull request is the
- * only human step.
+ * Removing the underscore on a `release/**` branch is the publish signal, and
+ * everything from there happens here — there is no human step. This prepares
+ * the post and opens the pull request; `publish.yml` merges it when it is due.
  *
- * DRY_RUN computes the whole thing and writes nothing — that is how this is
- * meant to be run first, against a real post, to see what it would have done.
+ * Because nobody reads the result before it is live, two things changed shape:
+ * `pubDatetime` in a draft is now an instruction about when to publish rather
+ * than something this generates, and orthography is applied rather than
+ * reported — but only the classes `lib/orthography.mjs` can prove do not change
+ * which word the sentence contains.
+ *
+ * DRY_RUN computes the whole thing and writes nothing.
  */
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -343,7 +350,12 @@ async function main() {
     fail(
       candidates.length === 0
         ? `No post to publish. Branch \`${BRANCH}\` adds no un-prefixed file under \`src/content/posts/\` that is not already on main. Did you forget to drop the leading underscore?`
-        : `Expected exactly one post, found ${candidates.length}:\n\n${candidates.map(p => `- \`${p}\``).join("\n")}\n\nOne branch, one post. Split these into separate branches.`
+        : `Expected exactly one post, found ${candidates.length}:\n\n${candidates.map(p => `- \`${p}\``).join("\n")}\n\n` +
+            "**One branch, one post.** That is what lets each post keep its own pull request, " +
+            "and therefore its own schedule: publishing several at different times means several " +
+            "pull requests waiting on their own `pubDatetime`, not several posts on one branch. " +
+            "Put each of these on its own `release/<slug>` branch and give each a `pubDatetime` " +
+            "in its frontmatter to stagger them."
     );
   }
 
@@ -418,13 +430,33 @@ async function main() {
     }
   }
 
-  // pubDatetime belongs with the cached values, not with the clock. Recomputing
-  // it every run meant the publication date drifted with each re-run and the
-  // branch collected a fresh commit even when nothing had actually changed -
-  // which also made the "nothing to commit" path unreachable, hiding the
-  // resumability bug below rather than fixing it.
+  // pubDatetime is an instruction when the author writes one, and an output
+  // otherwise.
+  //
+  // A draft used to carry title and body only, and this was always generated.
+  // It is now how Pawel schedules: publish.yml will not merge a post before the
+  // datetime in its frontmatter, so writing one queues the post for that moment
+  // and omitting one means "as soon as you can".
+  //
+  // The generated value still belongs with the cached values rather than with
+  // the clock. Recomputing it every run made the publication date drift with
+  // each re-run and the branch collect a fresh commit when nothing had changed,
+  // which also made the "nothing to commit" path unreachable and hid the
+  // resumability bug below rather than fixing it. An author-written value needs
+  // no cache: it cannot drift, because it does not come from a clock.
+  const authored = data.pubDatetime ? String(data.pubDatetime).trim() : null;
+  if (authored && Number.isNaN(Date.parse(authored))) {
+    fail(
+      `\`${path}\` has \`pubDatetime: ${authored}\`, which is not a date this can read. ` +
+        `The collection schema is \`z.date()\`, so a value astro cannot parse fails the build ` +
+        `and therefore the deploy. Use an ISO datetime, for example \`2026-09-10T09:00:00Z\`.`
+    );
+  }
   const pubDatetime =
-    cache?.pubDatetime ?? `${new Date().toISOString().slice(0, 19)}Z`;
+    authored ??
+    cache?.pubDatetime ??
+    `${new Date().toISOString().slice(0, 19)}Z`;
+  if (authored) say(`Scheduled by the author for ${authored}.`);
 
   if (!reimage) writeCache({ key, meta, language, pubDatetime });
 
@@ -577,15 +609,28 @@ async function main() {
           "### Orthography",
           "",
           language.accepted.length
-            ? `${language.accepted.length} finding(s). ${APPLY_ORTHOGRAPHY ? "Applied." : "**Not applied** \u2014 apply the ones you agree with while reviewing the diff."}\n\n` +
-              "| \u00b6 | Written | Suggested | Why |\n|---|---|---|---|\n" +
+            ? `${language.accepted.length} correction(s). ${APPLY_ORTHOGRAPHY ? "**Applied** \u2014 every one of them changes only how a word is spelled." : "**Not applied.**"}\n\n` +
+              "| \u00b6 | Written | Corrected | Kind | Why |\n|---|---|---|---|---|\n" +
               language.accepted
                 .map(
                   f =>
-                    `| ${f.paragraph} | \`${f.before}\` | \`${f.after}\` | ${f.reason}${f.occurrences > 1 ? ` (\u00d7${f.occurrences})` : ""} |`
+                    `| ${f.paragraph} | \`${f.before}\` | \`${f.after}\` | ${f.cls} | ${f.reason}${f.occurrences > 1 ? ` (\u00d7${f.occurrences})` : ""} |`
                 )
                 .join("\n")
-            : "No orthography findings.",
+            : "No orthography corrections were applied.",
+          // The point of this section: a suggestion that would swap one real
+          // word for another is reported and never applied, because choosing
+          // between `morze` and `mo\u017ce` is a judgement about Pawel's meaning.
+          language.flagged?.length
+            ? `\n**${language.flagged.length} suggestion(s) reported, not applied** \u2014 each would change which word the sentence contains, which is Pawel's call and not the automation's:\n\n` +
+              "| \u00b6 | Written | Suggested | Why the model flagged it |\n|---|---|---|---|\n" +
+              language.flagged
+                .map(
+                  f =>
+                    `| ${f.paragraph} | \`${f.before}\` | \`${f.after}\` | ${f.reason} |`
+                )
+                .join("\n")
+            : "",
           language.rejected.length
             ? `\n${language.rejected.length} suggestion(s) dropped by the guard: ${language.rejected.map(r => `\`${r.before}\` \u2192 \`${r.after}\` (${r.why})`).join(", ")}.`
             : "",
@@ -679,11 +724,46 @@ async function main() {
 
   writeFileSync(
     "pr-body.md",
-    `${report}\n\n---\n\nOpened by \`release.yml\`. Merging is the only human step — Cloudflare deploys on merge.\n`
+    `${report}\n\n---\n\n` +
+      `Opened by \`release.yml\`. **This publishes itself** — \`publish.yml\` merges it once the ` +
+      `checks pass, the ${pubDatetime ? `scheduled \`${pubDatetime}\` has arrived, and the ` : ""}` +
+      `hold window has elapsed. Cloudflare deploys on merge.\n\n` +
+      `To stop it: add the \`hold\` label, or push a commit whose subject contains \`[hold]\`.\n`
   );
   writeFileSync("pr-title.txt", `${reimage ? "Reimage" : "Publish"}: ${title}`);
-  writeFileSync("pr-labels.txt", image ? "" : "needs-image");
+  // automated-release is what publish.yml matches on: a pull request without it
+  // is never a candidate for an unattended merge, whoever opened it.
+  writeFileSync(
+    "pr-labels.txt",
+    ["automated-release", ...(image ? [] : ["needs-image"])].join(",")
+  );
   say("\nWrote pr-title.txt, pr-body.md and pr-labels.txt for the PR step.");
+
+  // A missing hero image publishes anyway — an illustration is not worth
+  // delaying finished writing over — but it is not something to discover weeks
+  // later on the live site, because the post also has no /posts thumbnail and
+  // no OG image until it is fixed.
+  if (!image && !reimage) {
+    raise({
+      title: `Hero image failed: ${slug}`,
+      body: [
+        `\`${path}\` published without a hero image.`,
+        "",
+        `**Reason:** ${imageError}`,
+        "",
+        "The post is otherwise complete and will publish on schedule. Until an image",
+        "exists it has no thumbnail on `/posts` and no OG image when shared.",
+        "",
+        "To fix it, push an empty commit containing `[reimage]` to the release branch —",
+        "or to `release/" +
+          slug +
+          "` if the post has already merged. Only the image is",
+        "regenerated; the frontmatter and your copy are untouched.",
+      ].join("\n"),
+      labels: [LABELS.urgent.name, LABELS.needsImage.name],
+      mode: notifyMode({ dryRun: DRY_RUN }),
+    });
+  }
 }
 
 main().catch(error => {

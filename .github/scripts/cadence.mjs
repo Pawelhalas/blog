@@ -1,7 +1,7 @@
-import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { git, lastPublished } from "./lib/git.mjs";
 import { notifyMode, writeMode } from "./lib/mode.mjs";
+import { closeIssue, gh, openIssues, raise, say } from "./lib/notify.mjs";
 import {
   addDays,
   cadenceState,
@@ -27,8 +27,6 @@ const DRY_RUN = process.env.DRY_RUN === "true";
 const MODE = writeMode({ writeEnabled: WRITE_ENABLED, dryRun: DRY_RUN });
 const NOTIFY = notifyMode({ dryRun: DRY_RUN });
 
-const say = line => process.stdout.write(`${line}\n`);
-
 function summary(markdown) {
   say(markdown);
   if (process.env.GITHUB_STEP_SUMMARY) {
@@ -36,8 +34,34 @@ function summary(markdown) {
   }
 }
 
-const gh = (...args) =>
-  execFileSync("gh", args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
+/**
+ * Posts already prepared and waiting on their own schedule.
+ *
+ * A queued post is not a checkpoint — only a merge is — so this never suppresses
+ * a nag or a miss. It exists so a reminder to write does not arrive while three
+ * finished posts sit in the queue, which would read as the system not knowing
+ * what it is doing.
+ */
+function queuedReleases() {
+  try {
+    return JSON.parse(
+      gh(
+        "pr",
+        "list",
+        "--state",
+        "open",
+        "--base",
+        "main",
+        "--limit",
+        "20",
+        "--json",
+        "number,title,headRefName"
+      )
+    ).filter(pr => pr.headRefName.startsWith("release/"));
+  } catch {
+    return [];
+  }
+}
 
 /**
  * How long since the previous scheduled run, in hours, or null if unknown.
@@ -111,57 +135,26 @@ const CADENCE_TITLE = /^Cadence(?:: publish by| missed:) \d{4}-\d{2}-\d{2}$/;
  * stretch when the answer is "none".
  */
 function syncNag(current) {
-  const open = JSON.parse(
-    gh(
-      "issue",
-      "list",
-      "--state",
-      "open",
-      "--limit",
-      "100",
-      "--json",
-      "title,number"
-    )
-  ).filter(issue => CADENCE_TITLE.test(issue.title));
+  const all = openIssues();
+  const mine = all.filter(issue => CADENCE_TITLE.test(issue.title));
 
-  for (const issue of open.filter(i => i.title !== current?.title)) {
-    if (!NOTIFY.may) {
-      say(
-        `[no-op] would close #${issue.number} — ${issue.title} (${NOTIFY.blockedBy})`
-      );
-      continue;
-    }
-    gh(
-      "issue",
-      "close",
-      String(issue.number),
-      "--comment",
-      [
+  for (const issue of mine.filter(i => i.title !== current?.title)) {
+    closeIssue({
+      number: issue.number,
+      title: issue.title,
+      mode: NOTIFY,
+      comment: [
         "This cadence window is over, so the check closed it — the issue list is meant to show only what is still outstanding.",
         "",
         current
           ? `Now open instead: **${current.title}**.`
           : "Nothing is due. The next reminder opens on its own.",
-      ].join("\n")
-    );
-    say(`Closed #${issue.number} — ${issue.title}`);
+      ].join("\n"),
+    });
   }
 
   if (!current) return;
-
-  const existing = open.find(issue => issue.title === current.title);
-  if (existing) {
-    say(`Issue already open: #${existing.number} — ${current.title}`);
-    return;
-  }
-  if (!NOTIFY.may) {
-    say(
-      `[no-op] would open issue (${NOTIFY.blockedBy}): ${current.title}\n${current.body}`
-    );
-    return;
-  }
-  gh("issue", "create", "--title", current.title, "--body", current.body);
-  say(`Opened issue: ${current.title}`);
+  raise({ ...current, mode: NOTIFY, existing: all });
 }
 
 function main() {
@@ -227,6 +220,7 @@ function main() {
   // the miss the morning after is the difference between a system that is right
   // and one that calls you late on the day you ship.
   if (daysUntilDue >= 0) {
+    const queued = queuedReleases();
     syncNag({
       title: `Cadence: publish by ${dueDate}`,
       body: [
@@ -236,12 +230,21 @@ function main() {
         "",
         `Last published: **${published.posts.join(", ")}** on ${published.date.slice(0, 10)}.`,
         "",
-        "To publish: branch, drop the leading underscore from the draft, push.",
+        "To publish: branch, drop the leading underscore from the draft, push. Nothing else —",
+        "the post prepares and publishes itself from there.",
         "",
         "```bash",
         "git switch -c release/my-post && git mv src/content/posts/_my-post.md src/content/posts/my-post.md && git commit -am 'Publish my-post' && git push -u origin HEAD",
         "```",
         "",
+        ...(queued.length
+          ? [
+              `**Already queued:** ${queued.map(pr => `#${pr.number} ${pr.title}`).join(", ")}.`,
+              "Those are prepared and waiting on their own `pubDatetime`. A queued post is not a",
+              "checkpoint — the clock restarts when one actually publishes.",
+              "",
+            ]
+          : []),
         `If nothing has shipped by the end of ${dueDate}, a miss is logged and the clock restarts. Closing this issue does not stop that.`,
         ...(gapOverdue
           ? [

@@ -29,6 +29,57 @@ const bare = word => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
  */
 const MACHINERY = /```|\]\(|^https?:|^[./~]|\/|^`|`$|^#|^\{|^</;
 
+/**
+ * Strips diacritics and case, so two spellings of the same word compare equal.
+ *
+ * The explicit ł handling is not decoration. Polish ł has no canonical
+ * decomposition, so NFD leaves it untouched while it happily reduces ę to e —
+ * meaning `bylem → byłem`, one of the commonest Polish typos, looks like a
+ * different word to a naive implementation and would be refused.
+ */
+const fold = word =>
+  word
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/ł/g, "l");
+
+/**
+ * What kind of change a correction actually makes.
+ *
+ * This is the load-bearing guarantee of the whole pipeline now that nobody
+ * reads the diff before it is live: **the automation may fix how a word is
+ * spelled and may never choose a different word.**
+ *
+ *   diacritics  zgineło → zginęło    the same letters, correctly accented
+ *   case        polska  → Polska     the same letters, correctly capitalised
+ *   split       napewno → na pewno   the same letters, correctly spaced
+ *   other       morze   → może       a DIFFERENT word
+ *
+ * Only the first three are ever applied. `other` is reported and left alone,
+ * because "morze" and "może" are both real Polish words and nothing here can
+ * know which one Pawel meant — that is a judgement about his content, not his
+ * orthography, and it is not the automation's to make.
+ *
+ * The cost is accepted deliberately: a genuine typo needing a letter added or
+ * removed (`widzalem → widziałem`) classifies as `other` and survives to the
+ * published post. Reporting a real typo is a smaller failure than silently
+ * replacing a word the author chose.
+ */
+export function correctionClass(before, after) {
+  const folded = fold(before);
+  const foldedAfter = fold(after);
+
+  if (/\s/.test(after)) {
+    return foldedAfter.replace(/\s+/g, "") === folded ? "split" : "other";
+  }
+  if (folded !== foldedAfter) return "other";
+  return before.toLowerCase() === after.toLowerCase() ? "case" : "diacritics";
+}
+
+/** The classes safe to apply unattended. */
+const APPLICABLE = new Set(["diacritics", "case", "split"]);
+
 export function loadAllowlist(path) {
   return new Set(
     readFileSync(path, "utf8")
@@ -69,6 +120,10 @@ function isProtected(word, allowlist) {
  */
 export function verifyCorrections(text, corrections, allowlist = new Set()) {
   const tokens = tokenise(text);
+  // Three buckets, not two: `flagged` is a correction that survived every
+  // structural check and was refused only because applying it would change
+  // which word the sentence contains. Those are worth reporting — they are
+  // often real errors — but never worth applying without Pawel.
 
   // Word position -> paragraph number, walked once.
   const paragraphAt = [];
@@ -83,6 +138,7 @@ export function verifyCorrections(text, corrections, allowlist = new Set()) {
 
   const accepted = [];
   const rejected = [];
+  const flagged = [];
 
   for (const correction of corrections) {
     const before = (correction.before ?? "").trim();
@@ -92,33 +148,56 @@ export function verifyCorrections(text, corrections, allowlist = new Set()) {
 
     if (!before || !after) {
       drop("empty");
-    } else if (/\s/.test(before) || /\s/.test(after)) {
-      drop("not a single word");
-    } else if (before === after) {
-      drop("no change");
-    } else if (MACHINERY.test(before) || MACHINERY.test(after)) {
-      drop("not prose");
-    } else if (isProtected(bare(before), allowlist)) {
-      drop("allowlisted term");
-    } else {
-      const hits = [];
-      for (let i = 0; i < tokens.length; i += 2) {
-        if (bare(tokens[i]) === before) hits.push(i);
-      }
-      if (hits.length === 0) drop("word does not appear in the post");
-      else
-        accepted.push({
-          before,
-          after,
-          reason,
-          hits,
-          paragraph: paragraphAt[hits[0]],
-          occurrences: hits.length,
-        });
+      continue;
     }
+    // `before` must still be one word — it has to match a single token in the
+    // post. `after` may contain a space, but only as a split: see
+    // correctionClass, which is what decides that.
+    if (/\s/.test(before)) {
+      drop("not a single word");
+      continue;
+    }
+    if (before === after) {
+      drop("no change");
+      continue;
+    }
+    if (MACHINERY.test(before) || MACHINERY.test(after)) {
+      drop("not prose");
+      continue;
+    }
+    if (isProtected(bare(before), allowlist)) {
+      drop("allowlisted term");
+      continue;
+    }
+
+    const hits = [];
+    for (let i = 0; i < tokens.length; i += 2) {
+      if (bare(tokens[i]) === before) hits.push(i);
+    }
+    if (hits.length === 0) {
+      drop("word does not appear in the post");
+      continue;
+    }
+
+    const entry = {
+      before,
+      after,
+      reason,
+      hits,
+      cls: correctionClass(before, after),
+      paragraph: paragraphAt[hits[0]],
+      occurrences: hits.length,
+    };
+
+    if (APPLICABLE.has(entry.cls)) accepted.push(entry);
+    else
+      flagged.push({
+        ...entry,
+        why: "would change the word, not its spelling",
+      });
   }
 
-  return { accepted, rejected };
+  return { accepted, rejected, flagged };
 }
 
 /**

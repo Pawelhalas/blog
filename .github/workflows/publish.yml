@@ -1,0 +1,87 @@
+name: Publish
+
+# Merges prepared posts, on schedule, with nobody watching. This is the step
+# that used to be Pawel clicking Merge.
+#
+# Not GitHub's auto-merge: that fires the instant checks go green, which leaves
+# no window to catch a mistake and no way to honour a pubDatetime in the future.
+# Polling gives both, because the hold window and the schedule are the same
+# mechanism.
+#
+# Scheduled runs are delayed under load and can be dropped entirely (see the
+# note at the top of cadence.yml). That is tolerable here: a missed run means a
+# post publishes at the next one, half an hour later. Nothing is lost, because
+# the pull request stays open and the decision is recomputed from scratch every
+# time.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Decide and print, merge nothing"
+        type: boolean
+        default: true
+      hold_minutes:
+        description: "Override the hold window for this run (minutes)"
+        type: string
+        required: false
+
+# Never cancel: a cancelled run between the merge and post-publish.yml would
+# leave the log to catch up on the next publish rather than this one.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: read
+
+env:
+  WRITE_ENABLED: "true"
+  # How long a prepared post sits visible before it publishes itself. The only
+  # purpose is that a mistake is catchable: a `hold` label or [hold] in the last
+  # commit subject stops it indefinitely. Nothing requires Pawel to use the
+  # window — only that he could.
+  HOLD_MINUTES: "60"
+
+jobs:
+  publish:
+    name: Publish what is due
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Install pnpm"
+        uses: pnpm/action-setup@v4
+        with:
+          version: "11.3.0"
+
+      - name: "🟢 Use Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: "📦 Install automation dependencies"
+        working-directory: .github/scripts
+        run: pnpm install --frozen-lockfile
+
+      - name: "🚀 Publish what is due"
+        run: node .github/scripts/publish.mjs
+        env:
+          # The PAT, not github.token: merging is a write to a protected branch,
+          # and the merge commit must trigger post-publish.yml, which a
+          # GITHUB_TOKEN push would not.
+          GH_TOKEN: ${{ secrets.RELEASE_PAT }}
+          WRITE_ENABLED: ${{ env.WRITE_ENABLED }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          # A dispatch input wins over the workflow default, so the window can
+          # be collapsed for a rehearsal without waiting an hour to watch the
+          # last step work.
+          HOLD_MINUTES: ${{ inputs.hold_minutes || env.HOLD_MINUTES }}
