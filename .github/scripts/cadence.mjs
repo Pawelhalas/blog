@@ -4,8 +4,7 @@ import { git, lastPublished } from "./lib/git.mjs";
 import { notifyMode, writeMode } from "./lib/mode.mjs";
 import {
   addDays,
-  CADENCE_DAYS,
-  DAY_MS,
+  cadenceState,
   LOG_PATH,
   NAG_LEAD_DAYS,
   readLog,
@@ -84,9 +83,6 @@ function hoursSincePreviousRun() {
 
 /** Beyond this, the schedule has skipped days rather than merely drifted. */
 const GAP_ALARM_HOURS = 48;
-
-/** UTC calendar days, so a late cron doesn't round a due date sideways. */
-const utcDay = value => Math.floor(Date.parse(value) / DAY_MS);
 
 /**
  * The two title shapes this script owns. Anything else in the issue list was
@@ -173,7 +169,6 @@ function main() {
   say(NOTIFY.banner);
 
   const log = readLog();
-  const cadenceDays = log.cadenceDays ?? CADENCE_DAYS;
   const published = lastPublished();
 
   if (!published) {
@@ -183,14 +178,17 @@ function main() {
     return;
   }
 
-  const lastMiss = log.misses.at(-1)?.dueAt ?? null;
-  const startedAt = [published.date, lastMiss]
-    .filter(Boolean)
-    .reduce((a, b) => (Date.parse(a) > Date.parse(b) ? a : b));
-
-  const dueAt = addDays(startedAt, cadenceDays);
-  const daysUntilDue = utcDay(dueAt) - utcDay(new Date().toISOString());
-  const dueDate = dueAt.slice(0, 10);
+  // Every date this script reasons about comes from here. See the note on
+  // cadenceState: it used to be computed inline, next to a copy in the library
+  // that nothing called and that had drifted to the wrong boundary rule.
+  const {
+    dueAt,
+    dueDate,
+    daysUntilDue,
+    daysSinceLastPublish,
+    cadenceDays,
+    lastMiss,
+  } = cadenceState(log, published.date);
 
   const gapHours = hoursSincePreviousRun();
   const gapOverdue = gapHours !== null && gapHours > GAP_ALARM_HOURS;
@@ -261,8 +259,7 @@ function main() {
   const miss = {
     dueAt,
     loggedAt: new Date().toISOString(),
-    daysSinceLastPublish:
-      utcDay(new Date().toISOString()) - utcDay(published.date),
+    daysSinceLastPublish,
   };
 
   syncNag({

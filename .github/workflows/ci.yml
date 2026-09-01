@@ -44,3 +44,37 @@ jobs:
 
       - name: "🚀 Build the project"
         run: pnpm run build
+
+  # The site build above never touches .github/scripts: that folder is its own
+  # pnpm root, so `pnpm install` at the repo root does not even fetch its
+  # dependencies. Without this job the automation is linted and format-checked
+  # but never executed, which is how every bug in its history reached either a
+  # scheduled run or a real publish before anyone saw it.
+  automation:
+    name: Automation tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: "☁️ Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "📦 Install pnpm"
+        uses: pnpm/action-setup@v4
+        with:
+          version: "11.3.0"
+
+      # No `cache: pnpm` here on purpose: setup-node resolves the lockfile from
+      # the repo root, which is the site's tree, not this one.
+      - name: "🟢 Use Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: "📦 Install automation dependencies"
+        working-directory: .github/scripts
+        run: pnpm install --frozen-lockfile
+
+      - name: "🧪 Test the automation"
+        working-directory: .github/scripts
+        run: pnpm test
