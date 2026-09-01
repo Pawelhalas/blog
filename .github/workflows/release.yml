@@ -38,10 +38,21 @@ permissions:
   actions: read
 
 env:
-  # Build plan step 7: run this in dry-run against a real post and check the
-  # tags and descriptions it proposes before letting it write anything.
-  # Flip to "false" for step 8.
-  DRY_RUN_DEFAULT: "true"
+  # A push to release/** is a real run: it writes the metadata, commits, and
+  # opens the pull request. Dropping the underscore is the publish signal, and
+  # requiring a second manual dispatch after it was the one human step the
+  # design said would not exist.
+  #
+  # The rehearsal this replaced no longer bought anything. It generated and paid
+  # for the hero image anyway, and since metadata and image are cached per
+  # branch the real run reuses exactly what the rehearsal produced — so the two
+  # phases cost the same money and the second one only re-showed the first.
+  # The pull request is the preview, it renders the image and the diff, and
+  # branch protection means nothing reaches main until Pawel merges it.
+  #
+  # workflow_dispatch still defaults dry_run to true, so a deliberate rehearsal
+  # is one checkbox away.
+  DRY_RUN_DEFAULT: "false"
   # Roughly $0.02-$0.25 an image by tier. medium keeps the yearly cost in the
   # range the design budgeted for; high is noticeably better and ~4x the price.
   IMAGE_QUALITY: "medium"

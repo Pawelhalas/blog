@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { git, lastPublished } from "./lib/git.mjs";
-import { writeMode } from "./lib/mode.mjs";
+import { notifyMode, writeMode } from "./lib/mode.mjs";
 import {
   addDays,
   CADENCE_DAYS,
@@ -26,6 +26,7 @@ import {
 const WRITE_ENABLED = process.env.WRITE_ENABLED === "true";
 const DRY_RUN = process.env.DRY_RUN === "true";
 const MODE = writeMode({ writeEnabled: WRITE_ENABLED, dryRun: DRY_RUN });
+const NOTIFY = notifyMode({ dryRun: DRY_RUN });
 
 const say = line => process.stdout.write(`${line}\n`);
 
@@ -88,11 +89,32 @@ const GAP_ALARM_HOURS = 48;
 const utcDay = value => Math.floor(Date.parse(value) / DAY_MS);
 
 /**
+ * The two title shapes this script owns. Anything else in the issue list was
+ * opened by a person and is never touched.
+ */
+const CADENCE_TITLE = /^Cadence(?:: publish by| missed:) \d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Brings the open issues in line with the window this run just computed.
+ *
  * Notifications are GitHub's own — an issue, which emails the repo owner with
  * no SMTP secret to hold and nothing to configure. Deduplicated on the exact
  * title so a daily cron cannot open the same nag twice.
+ *
+ * Opening was the only half that existed, and it left every nag standing
+ * forever: one issue asked for a post that had already shipped on time, and
+ * another described a miss whose log entry had since been reverted. An issue
+ * list that disagrees with `release-log.json` is worse than no issue list,
+ * because the log is the one that is right.
+ *
+ * Reconciling rather than reacting is what makes that self-healing: a stale nag
+ * is closed on the next daily run whatever made it stale — a publish, a revert,
+ * a hand-edited log — without this script having to be told which.
+ *
+ * `current` is the issue this window wants open, or null during the quiet
+ * stretch when the answer is "none".
  */
-function notify(title, body) {
+function syncNag(current) {
   const open = JSON.parse(
     gh(
       "issue",
@@ -104,23 +126,51 @@ function notify(title, body) {
       "--json",
       "title,number"
     )
-  );
-  const existing = open.find(issue => issue.title === title);
+  ).filter(issue => CADENCE_TITLE.test(issue.title));
 
+  for (const issue of open.filter(i => i.title !== current?.title)) {
+    if (!NOTIFY.may) {
+      say(
+        `[no-op] would close #${issue.number} — ${issue.title} (${NOTIFY.blockedBy})`
+      );
+      continue;
+    }
+    gh(
+      "issue",
+      "close",
+      String(issue.number),
+      "--comment",
+      [
+        "This cadence window is over, so the check closed it — the issue list is meant to show only what is still outstanding.",
+        "",
+        current
+          ? `Now open instead: **${current.title}**.`
+          : "Nothing is due. The next reminder opens on its own.",
+      ].join("\n")
+    );
+    say(`Closed #${issue.number} — ${issue.title}`);
+  }
+
+  if (!current) return;
+
+  const existing = open.find(issue => issue.title === current.title);
   if (existing) {
-    say(`Issue already open: #${existing.number} — ${title}`);
+    say(`Issue already open: #${existing.number} — ${current.title}`);
     return;
   }
-  if (DRY_RUN) {
-    say(`[dry-run] would open issue: ${title}\n${body}`);
+  if (!NOTIFY.may) {
+    say(
+      `[no-op] would open issue (${NOTIFY.blockedBy}): ${current.title}\n${current.body}`
+    );
     return;
   }
-  gh("issue", "create", "--title", title, "--body", body);
-  say(`Opened issue: ${title}`);
+  gh("issue", "create", "--title", current.title, "--body", current.body);
+  say(`Opened issue: ${current.title}`);
 }
 
 function main() {
   say(MODE.banner);
+  say(NOTIFY.banner);
 
   const log = readLog();
   const cadenceDays = log.cadenceDays ?? CADENCE_DAYS;
@@ -164,8 +214,11 @@ function main() {
   );
 
   if (daysUntilDue > NAG_LEAD_DAYS) {
+    // Not "nothing to do": this is the stretch right after a publish, which is
+    // exactly when a nag from the window that just closed is still sitting open.
+    syncNag(null);
     summary(
-      `\nNothing to do. Next nag at ${addDays(dueAt, -NAG_LEAD_DAYS).slice(0, 10)}.`
+      `\nNothing outstanding. Next nag at ${addDays(dueAt, -NAG_LEAD_DAYS).slice(0, 10)}.`
     );
     return;
   }
@@ -176,9 +229,9 @@ function main() {
   // the miss the morning after is the difference between a system that is right
   // and one that calls you late on the day you ship.
   if (daysUntilDue >= 0) {
-    notify(
-      `Cadence: publish by ${dueDate}`,
-      [
+    syncNag({
+      title: `Cadence: publish by ${dueDate}`,
+      body: [
         daysUntilDue === 0
           ? `The ${cadenceDays}-day cadence is due **today**. Publishing any time today counts.`
           : `${daysUntilDue} day(s) until the ${cadenceDays}-day cadence is due.`,
@@ -198,8 +251,8 @@ function main() {
               `> ⚠️ The previous scheduled check ran ${gapHours.toFixed(0)} hours ago. Normal is 18–34, so the schedule skipped at least a day and this reminder may be later than it looks.`,
             ]
           : []),
-      ].join("\n")
-    );
+      ].join("\n"),
+    });
     return;
   }
 
@@ -212,16 +265,16 @@ function main() {
       utcDay(new Date().toISOString()) - utcDay(published.date),
   };
 
-  notify(
-    `Cadence missed: ${dueDate}`,
-    [
+  syncNag({
+    title: `Cadence missed: ${dueDate}`,
+    body: [
       `The ${cadenceDays}-day cadence came due on ${dueDate} with nothing published.`,
       "",
       `Last published: **${published.posts.join(", ")}** on ${published.date.slice(0, 10)} — ${miss.daysSinceLastPublish} days ago.`,
       "",
       `Miss logged, clock restarted. Next due: ${addDays(dueAt, cadenceDays).slice(0, 10)}. No further notifications until then.`,
-    ].join("\n")
-  );
+    ].join("\n"),
+  });
 
   if (!MODE.may) {
     summary(
