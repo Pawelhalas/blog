@@ -141,3 +141,17 @@ describe("assertNoTyporaEscape", () => {
     );
   });
 });
+
+describe("what counts as published", () => {
+  // lastPublished() lives in git.mjs and needs a repository, so it is not unit
+  // tested here — but the rule it now shares with post-publish.mjs is: a post
+  // counts only while it is still there. isPublishedPost decides membership,
+  // and the caller intersects with what exists at the ref.
+  //
+  // Worth pinning because the failure is silent: a deleted or reverted post
+  // that still counted would leave the cadence certain something shipped that
+  // day and suppress the nag for a fortnight.
+  test("a path is judged by name alone, so callers must check existence", () => {
+    assert.equal(isPublishedPost("src/content/posts/deleted-post.md"), true);
+  });
+});

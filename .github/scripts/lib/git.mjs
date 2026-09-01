@@ -67,11 +67,23 @@ export function lastPublished(ref = mainRef()) {
     POSTS_DIR
   );
 
+  // Only posts that are still there.
+  //
+  // Without this, *ever having added* a post counts forever: unpublishing one,
+  // or reverting a mistake, would leave the cadence certain that something
+  // shipped that day and quietly suppress the nag for a fortnight. The clock
+  // has to reflect what the blog currently contains, not what it once did.
+  // `post-publish.mjs` already filters its own history this way; this is the
+  // same rule in the place that decides when Pawel is late.
+  const live = new Set(postsAt(ref).filter(isPublishedPost));
+
   for (const record of out.split(RS)) {
     if (!record.trim()) continue;
     const [header, ...rest] = record.split("\n");
     const [sha, date] = header.trim().split(/\s+/);
-    const posts = rest.map(line => line.trim()).filter(isPublishedPost);
+    const posts = rest
+      .map(line => line.trim())
+      .filter(path => isPublishedPost(path) && live.has(path));
     if (posts.length > 0) return { sha, date, posts };
   }
   return null;

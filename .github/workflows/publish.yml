@@ -23,6 +23,10 @@ on:
         description: "Decide and print, merge nothing"
         type: boolean
         default: true
+      hold_minutes:
+        description: "Override the hold window for this run (minutes)"
+        type: string
+        required: false
 
 # Never cancel: a cancelled run between the merge and post-publish.yml would
 # leave the log to catch up on the next publish rather than this one.
@@ -77,4 +81,7 @@ jobs:
           GH_TOKEN: ${{ secrets.RELEASE_PAT }}
           WRITE_ENABLED: ${{ env.WRITE_ENABLED }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
-          HOLD_MINUTES: ${{ env.HOLD_MINUTES }}
+          # A dispatch input wins over the workflow default, so the window can
+          # be collapsed for a rehearsal without waiting an hour to watch the
+          # last step work.
+          HOLD_MINUTES: ${{ inputs.hold_minutes || env.HOLD_MINUTES }}
