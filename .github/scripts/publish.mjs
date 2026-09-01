@@ -25,6 +25,20 @@ const DRY_RUN = process.env.DRY_RUN === "true";
 const MODE = writeMode({ writeEnabled: WRITE_ENABLED, dryRun: DRY_RUN });
 const NOTIFY = notifyMode({ dryRun: DRY_RUN });
 const HOLD_MINUTES = Number(process.env.HOLD_MINUTES || 60);
+/**
+ * The checks that must be green, named rather than inferred.
+ *
+ * Must stay in step with branch protection's required contexts. Naming them is
+ * what stops the decision depending on whatever the status rollup happens to
+ * include - a preview deployment that never concludes would otherwise block
+ * every publish, or be quietly absent and gate nothing.
+ */
+const REQUIRED_CHECKS = (
+  process.env.REQUIRED_CHECKS || "Code standards & build,Automation tests"
+)
+  .split(",")
+  .map(name => name.trim())
+  .filter(Boolean);
 
 function summary(markdown) {
   say(markdown);
@@ -82,19 +96,6 @@ function pubDatetimeOf(pr) {
   }
 }
 
-function lastCommitSubject(pr) {
-  try {
-    return gh(
-      "api",
-      `repos/{owner}/{repo}/commits/${pr.headRefName}`,
-      "--jq",
-      ".commit.message"
-    ).split("\n")[0];
-  } catch {
-    return "";
-  }
-}
-
 function main() {
   say(MODE.banner);
   say(NOTIFY.banner);
@@ -124,7 +125,7 @@ function main() {
       pubDatetime: pubDatetimeOf(pr),
       openedAt: pr.createdAt,
       labels: pr.labels.map(label => label.name),
-      lastCommitSubject: lastCommitSubject(pr),
+      requiredChecks: REQUIRED_CHECKS,
       changedPaths: pr.files.map(file => file.path),
       mergeable: pr.mergeable !== "CONFLICTING",
       holdMinutes: HOLD_MINUTES,

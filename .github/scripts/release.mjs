@@ -121,6 +121,16 @@ const GENERATE_IMAGE = setting("GENERATE_IMAGE_INPUT", "") !== "false";
 const SUBJECT = (process.env.COMMIT_MESSAGE || "").split("\n")[0];
 const REIMAGE = /\[reimage\]/i.test(SUBJECT);
 const REMETA = /\[remeta\]/i.test(SUBJECT);
+/**
+ * Prepare it, but do not let it publish itself.
+ *
+ * Read here rather than by publish.mjs because this pipeline commits its own
+ * "Prepare <slug> for publishing" on top of whatever was pushed, so the
+ * author's marker is never the branch's last commit. Checking it there looked
+ * right and silently never fired: a rehearsal published a post that had asked
+ * to be held. The marker sets the `hold` label, and the label is the switch.
+ */
+const HOLD = /\[hold\]/i.test(SUBJECT);
 const APPLY_ORTHOGRAPHY = process.env.APPLY_ORTHOGRAPHY === "true";
 const IMAGE_QUALITY = process.env.IMAGE_QUALITY || "medium";
 const BRANCH =
@@ -735,8 +745,15 @@ async function main() {
   // is never a candidate for an unattended merge, whoever opened it.
   writeFileSync(
     "pr-labels.txt",
-    ["automated-release", ...(image ? [] : ["needs-image"])].join(",")
+    [
+      "automated-release",
+      ...(image ? [] : ["needs-image"]),
+      ...(HOLD ? ["hold"] : []),
+    ].join(",")
   );
+  if (HOLD) {
+    say("\n[hold] was in the commit subject - the pull request opens held.");
+  }
   say("\nWrote pr-title.txt, pr-body.md and pr-labels.txt for the PR step.");
 
   // A missing hero image publishes anyway — an illustration is not worth
