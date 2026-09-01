@@ -23,6 +23,13 @@ on:
         type: boolean
         default: true
 
+# One run per branch. Cancelling the older one is safe because a run is
+# resumable: whatever it committed before dying is picked up by the next, which
+# then opens the pull request. Without that property this would strand branches.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write

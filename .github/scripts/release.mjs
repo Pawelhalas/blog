@@ -418,7 +418,15 @@ async function main() {
     }
   }
 
-  if (!reimage) writeCache({ key, meta, language });
+  // pubDatetime belongs with the cached values, not with the clock. Recomputing
+  // it every run meant the publication date drifted with each re-run and the
+  // branch collected a fresh commit even when nothing had actually changed -
+  // which also made the "nothing to commit" path unreachable, hiding the
+  // resumability bug below rather than fixing it.
+  const pubDatetime =
+    cache?.pubDatetime ?? `${new Date().toISOString().slice(0, 19)}Z`;
+
+  if (!reimage) writeCache({ key, meta, language, pubDatetime });
 
   // Exactly one post is featured at a time. index.astro splits the homepage
   // into featuredPosts and recentPosts, so featuring everything empties the
@@ -481,7 +489,6 @@ async function main() {
 
   // Reimaging leaves the frontmatter byte-for-byte alone. It is already settled
   // and already reviewed; re-deriving it would churn a diff Pawel has read.
-  const pubDatetime = `${new Date().toISOString().slice(0, 19)}Z`;
   const frontmatter = reimage
     ? original.slice(0, original.length - body.length)
     : buildFrontmatter({
@@ -627,22 +634,37 @@ async function main() {
   );
   git("add", "-A", "--", path, ASSETS_DIR, ...unfeature.map(u => u.path));
 
-  if (git("diff", "--cached", "--name-only").trim() === "") {
-    summary("\nNothing changed — no commit, no pull request.");
-    return;
-  }
+  // Resumable by design.
+  //
+  // Committing happens before the pull request is opened, so a run that dies in
+  // between - expired PAT, cancelled job, GitHub having a bad afternoon - leaves
+  // the branch prepared with no PR. This used to be a dead end: the re-run found
+  // nothing to commit and returned before writing the PR files, so the pull
+  // request never appeared no matter how many times you tried.
+  //
+  // Caching the metadata made that *more* likely, not less: identical input now
+  // produces identical output, so every re-run lands here. "Nothing to commit"
+  // and "nothing to do" are different things, and only the first is true.
+  const staged = git("diff", "--cached", "--name-only").trim() !== "";
 
-  git(
-    "commit",
-    "-m",
-    reimage
-      ? `Regenerate the hero image for ${slug}`
-      : `Prepare ${slug} for publishing\n\nFrontmatter, hero image and featured flag set by release.yml.`
-  );
-  // Pushed with the default token, whose pushes do not start workflow runs —
-  // this cannot retrigger release.yml. The PR step uses the PAT precisely
-  // because there the retrigger (of ci.yml) is the point.
-  git("push", "origin", `HEAD:${BRANCH}`);
+  if (staged) {
+    git(
+      "commit",
+      "-m",
+      reimage
+        ? `Regenerate the hero image for ${slug}`
+        : `Prepare ${slug} for publishing\n\nFrontmatter, hero image and featured flag set by release.yml.`
+    );
+    // Pushed with the default token, whose pushes do not start workflow runs —
+    // this cannot retrigger release.yml. The PR step uses the PAT precisely
+    // because there the retrigger (of ci.yml) is the point.
+    git("push", "origin", `HEAD:${BRANCH}`);
+  } else {
+    summary(
+      "\nNothing new to commit — this post was already prepared on the branch by an " +
+        "earlier run. Carrying on to make sure the pull request exists."
+    );
+  }
 
   writeFileSync(
     "pr-body.md",

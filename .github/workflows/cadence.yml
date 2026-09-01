@@ -33,6 +33,13 @@ on:
         type: boolean
         default: true
 
+# Both workflows commit .github/release-log.json to main, so they share one
+# queue. Never cancel here: a cancelled write leaves the log half-updated, and
+# unlike release.yml there is no pull request to notice it in.
+concurrency:
+  group: main-log-write
+  cancel-in-progress: false
+
 permissions:
   contents: write
   issues: write
