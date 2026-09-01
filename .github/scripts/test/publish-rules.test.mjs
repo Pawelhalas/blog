@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { disallowedPaths, shouldMerge } from "../lib/publish-rules.mjs";
+import {
+  addedPost,
+  disallowedPaths,
+  shouldMerge,
+} from "../lib/publish-rules.mjs";
 
 /**
  * These gates are the whole of what used to be Pawel reading a pull request and
@@ -273,5 +277,42 @@ describe("disallowedPaths", () => {
       ]),
       ["src/content/posts-evil/a.md", "src/assets/imagesx/b.png"]
     );
+  });
+});
+
+describe("addedPost", () => {
+  // The bug this exists for: a release always MODIFIES the previously featured
+  // post to strip its `featured` flag, so a release pull request always touches
+  // two markdown files. Code that assumed one could not find the schedule, and
+  // a post scheduled four days out published itself within the minute.
+  const files = [
+    { path: "src/content/posts/new-post.md", changeType: "ADDED" },
+    { path: "src/content/posts/older-post.md", changeType: "MODIFIED" },
+    { path: "src/assets/images/new-post-green.png", changeType: "ADDED" },
+  ];
+
+  test("picks the added post, not merely the only one", () => {
+    const found = addedPost(files);
+    assert.equal(found.length, 1);
+    assert.equal(found[0].path, "src/content/posts/new-post.md");
+  });
+
+  test("ignores an added image", () => {
+    assert.ok(!addedPost(files).some(f => f.path.endsWith(".png")));
+  });
+
+  test("two added posts is not one, so the caller can refuse", () => {
+    const two = [
+      { path: "src/content/posts/a.md", changeType: "ADDED" },
+      { path: "src/content/posts/b.md", changeType: "ADDED" },
+    ];
+    assert.equal(addedPost(two).length, 2);
+  });
+
+  test("a release that adds no post yields nothing", () => {
+    const none = [
+      { path: "src/content/posts/older-post.md", changeType: "MODIFIED" },
+    ];
+    assert.equal(addedPost(none).length, 0);
   });
 });
