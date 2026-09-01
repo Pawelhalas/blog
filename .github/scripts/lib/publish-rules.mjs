@@ -100,12 +100,24 @@ export function shouldMerge({
     requiredChecks.length > 0 ? requiredChecks : checks.map(c => c.name);
   const relevant = checks.filter(check => wanted.includes(check.name));
 
-  const failed = relevant.filter(check => check.conclusion === "FAILURE");
+  // Terminal conclusions that are not success. ACTION_REQUIRED is the one that
+  // matters: a run awaiting manual approval never completes on its own, so
+  // treating it as "still running" waits for ever, silently, on a check nobody
+  // knows needs a click. Rehearsal produced exactly that stall. Everything here
+  // escalates rather than waits.
+  const STUCK = [
+    "FAILURE",
+    "ACTION_REQUIRED",
+    "TIMED_OUT",
+    "CANCELLED",
+    "STARTUP_FAILURE",
+  ];
+  const failed = relevant.filter(check => STUCK.includes(check.conclusion));
   if (failed.length > 0) {
-    return no(
-      `required checks failed: ${failed.map(c => c.name).join(", ")}`,
-      true
-    );
+    const detail = failed
+      .map(c => `${c.name} (${c.conclusion.toLowerCase().replace(/_/g, " ")})`)
+      .join(", ");
+    return no(`required checks not passing: ${detail}`, true);
   }
   const missing = wanted.filter(
     name =>
