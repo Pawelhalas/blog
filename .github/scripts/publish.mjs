@@ -2,7 +2,7 @@ import { appendFileSync } from "node:fs";
 
 import { writeMode, notifyMode } from "./lib/mode.mjs";
 import { gh, say, openIssues, raise, LABELS } from "./lib/notify.mjs";
-import { shouldMerge } from "./lib/publish-rules.mjs";
+import { addedPost, shouldMerge } from "./lib/publish-rules.mjs";
 
 /**
  * Publishes prepared posts, on schedule, with nobody watching.
@@ -71,29 +71,43 @@ function releasePullRequests() {
 }
 
 /**
- * pubDatetime is read from the post as it exists on the branch, not from the
- * cache or the log: the file is what will be published, so the file is what
- * decides when.
+ * When this post is due, or why that could not be established.
+ *
+ * Fails **closed**. The entire purpose of the schedule is to not publish before
+ * a date, so "I could not work out the date" must never resolve to "publish
+ * now". It used to: the lookup caught its own errors and returned null, null
+ * meant no schedule, and no schedule meant go. A post scheduled for four days
+ * later published itself within the minute, and the run log showed only "all
+ * gates clear" — the fact it was missing the date was nowhere.
  */
-function pubDatetimeOf(pr) {
+function scheduleOf(pr) {
+  const added = addedPost(pr.files);
+  if (added.length !== 1) {
+    return {
+      error: `expected exactly one added post, found ${added.length}: ${added.map(f => f.path).join(", ") || "none"}`,
+    };
+  }
+  let decoded;
   try {
-    const files = pr.files
-      .map(file => file.path)
-      .filter(
-        path => path.startsWith("src/content/posts/") && path.endsWith(".md")
-      );
-    if (files.length !== 1) return null;
     const text = gh(
       "api",
-      `repos/{owner}/{repo}/contents/${files[0]}?ref=${pr.headRefName}`,
+      `repos/{owner}/{repo}/contents/${added[0].path}?ref=${pr.headRefName}`,
       "--jq",
       ".content"
     );
-    const decoded = Buffer.from(text, "base64").toString("utf8");
-    return decoded.match(/^pubDatetime:\s*(.+)$/m)?.[1]?.trim() ?? null;
-  } catch {
-    return null;
+    decoded = Buffer.from(text, "base64").toString("utf8");
+  } catch (error) {
+    return {
+      error: `could not read ${added[0].path}: ${error.message.split("\n")[0]}`,
+    };
   }
+  const found = decoded.match(/^pubDatetime:\s*(.+)$/m)?.[1]?.trim();
+  if (!found) {
+    // release.mjs always writes one, authored or generated. Its absence means
+    // the wrong file was read, not that the post is unscheduled.
+    return { error: `${added[0].path} has no pubDatetime - refusing to guess` };
+  }
+  return { value: found };
 }
 
 function main() {
@@ -110,6 +124,14 @@ function main() {
   const verdicts = [];
 
   for (const pr of prs) {
+    const schedule = scheduleOf(pr);
+    if (schedule.error) {
+      verdicts.push({
+        pr,
+        decision: { merge: false, reason: schedule.error, blocking: true },
+      });
+      continue;
+    }
     const decision = shouldMerge({
       checks: (pr.statusCheckRollup ?? []).map(check => ({
         name: check.name ?? check.context,
@@ -122,7 +144,7 @@ function main() {
               ? "FAILURE"
               : null),
       })),
-      pubDatetime: pubDatetimeOf(pr),
+      pubDatetime: schedule.value,
       openedAt: pr.createdAt,
       labels: pr.labels.map(label => label.name),
       requiredChecks: REQUIRED_CHECKS,
@@ -130,15 +152,19 @@ function main() {
       mergeable: pr.mergeable !== "CONFLICTING",
       holdMinutes: HOLD_MINUTES,
     });
-    verdicts.push({ pr, decision });
+    verdicts.push({ pr, decision, schedule: schedule.value });
   }
 
   summary(
     `## Release queue\n\n` +
       verdicts
         .map(
-          ({ pr, decision }) =>
-            `- ${decision.merge ? "✅" : decision.blocking ? "⛔" : "⏳"} **#${pr.number}** ${pr.title} — ${decision.reason}`
+          ({ pr, decision, schedule }) =>
+            `- ${decision.merge ? "✅" : decision.blocking ? "⛔" : "⏳"} **#${pr.number}** ${pr.title} — ${decision.reason}` +
+            // The inputs, not just the verdict. A wrong input produced a
+            // perfectly reasonable-looking "all gates clear" once, and nothing
+            // in the log said which facts it had decided on.
+            `\n  <sub>scheduled ${schedule ?? "—"} · opened ${pr.createdAt} · labels ${pr.labels.map(l => l.name).join("/") || "none"} · ${pr.files.length} file(s)</sub>`
         )
         .join("\n")
   );

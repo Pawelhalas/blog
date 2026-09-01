@@ -23,6 +23,24 @@ const ALLOWED = [/^src\/content\/posts\//, /^src\/assets\/images\//];
 export const disallowedPaths = paths =>
   paths.filter(path => !ALLOWED.some(allowed => allowed.test(path)));
 
+/**
+ * The post this release is publishing, out of everything the pull request touches.
+ *
+ * Not "the only markdown file": a release also *modifies* the previously
+ * featured post to strip its `featured` flag, so there are always two. Assuming
+ * one meant the schedule could not be found, and a post scheduled for next week
+ * published itself within the minute — which is exactly what happened in
+ * rehearsal. The new post is the ADDED one.
+ */
+export function addedPost(files) {
+  return files.filter(
+    file =>
+      file.changeType === "ADDED" &&
+      file.path.startsWith("src/content/posts/") &&
+      file.path.endsWith(".md")
+  );
+}
+
 const MINUTE_MS = 60 * 1000;
 
 /**
