@@ -1,5 +1,5 @@
 {
-  "cadenceDays": 14,
+  "cadenceDays": 3,
   "published": [
     {
       "slug": "ai-w-sluzbie-tym-dobrym",
@@ -23,5 +23,11 @@
       "imageBackground": "pale blue"
     }
   ],
-  "misses": []
+  "misses": [
+    {
+      "dueAt": "2026-08-30T17:46:23.000Z",
+      "loggedAt": "2026-09-01T10:48:32.450Z",
+      "daysSinceLastPublish": 5
+    }
+  ]
 }
