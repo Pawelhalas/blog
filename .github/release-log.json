@@ -14,13 +14,6 @@
       "publishedAt": "2026-08-13T11:30:35+02:00",
       "commit": "abb3d7b78a530ecdddf61ea2b387fc552214ffd2",
       "imageBackground": "pale violet"
-    },
-    {
-      "slug": "zbudowalem-z-claudem-tracker-ofert-pracy",
-      "path": "src/content/posts/zbudowalem-z-claudem-tracker-ofert-pracy.md",
-      "publishedAt": "2026-08-27T19:46:23+02:00",
-      "commit": "f91dc63918515d5304b78c41a521c6d15c3a5c75",
-      "imageBackground": "pale blue"
     }
   ],
   "misses": []
