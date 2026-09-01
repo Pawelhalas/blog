@@ -104,6 +104,25 @@ worse than having no issue list, and the log is the one that is right.
 Closing a nag by hand still does not dismiss it — the next run reopens it,
 because the window really is still open. Publish, or wait for the miss.
 
+## Tests
+
+```bash
+cd .github/scripts && pnpm test
+```
+
+Node's built-in runner, no test framework. `test/` covers the pure functions —
+the orthography guard, the frontmatter surgery, the publish signal and the
+cadence boundary. The **Automation tests** job in `ci.yml` runs them on every
+pull request and is a required check, so a broken script cannot reach `main`.
+
+Anything that talks to git, the network or an API is deliberately not covered.
+Mocking those buys little and rots; the value is in the pure logic, which is
+also where every bug in this system's history actually lived.
+
+One test is marked `KNOWN GAP` — word-split corrections (`napewno` → `na pewno`)
+are dropped by the guard. It pins current behaviour on purpose. When that is
+fixed, change the test deliberately rather than discovering it went red.
+
 ## Constraints worth knowing before editing these scripts
 
 - The hero image is the **first markdown image in the body**, not a frontmatter
