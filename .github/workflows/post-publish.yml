@@ -23,8 +23,10 @@ permissions:
   contents: write
 
 env:
-  # Ships off, same as cadence.yml. Build plan step 9.
-  WRITE_ENABLED: "false"
+  # On since 2026-08-31, same as cadence.yml. Build plan step 9. Until then the
+  # log drifted: zbudowalem-z-claudem-tracker-ofert-pracy published 2026-08-27
+  # and was never recorded.
+  WRITE_ENABLED: "true"
 
 jobs:
   record:
