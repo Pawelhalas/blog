@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 import { git, lastPublished } from "./lib/git.mjs";
+import { writeMode } from "./lib/mode.mjs";
 import {
   addDays,
   CADENCE_DAYS,
@@ -24,6 +25,7 @@ import {
 
 const WRITE_ENABLED = process.env.WRITE_ENABLED === "true";
 const DRY_RUN = process.env.DRY_RUN === "true";
+const MODE = writeMode({ writeEnabled: WRITE_ENABLED, dryRun: DRY_RUN });
 
 const say = line => process.stdout.write(`${line}\n`);
 
@@ -118,6 +120,8 @@ function notify(title, body) {
 }
 
 function main() {
+  say(MODE.banner);
+
   const log = readLog();
   const cadenceDays = log.cadenceDays ?? CADENCE_DAYS;
   const published = lastPublished();
@@ -219,9 +223,11 @@ function main() {
     ].join("\n")
   );
 
-  if (!WRITE_ENABLED) {
+  if (!MODE.may) {
     summary(
-      `\n\`WRITE_ENABLED\` is off — miss **not** written to the log:\n\n\`\`\`json\n${JSON.stringify(miss, null, 2)}\n\`\`\``
+      `\n**Nothing written — ${MODE.blockedBy}.** In CI with writes enabled this miss ` +
+        `would be committed to \`main\` and the clock restarted. It would have recorded:` +
+        `\n\n\`\`\`json\n${JSON.stringify(miss, null, 2)}\n\`\`\``
     );
     return;
   }

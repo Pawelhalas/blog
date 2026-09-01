@@ -1,5 +1,6 @@
 import { appendFileSync } from "node:fs";
 import { git, mainRef, postsAt } from "./lib/git.mjs";
+import { writeMode } from "./lib/mode.mjs";
 import {
   isPublishedPost,
   POSTS_DIR,
@@ -21,6 +22,8 @@ import { BACKGROUNDS, readLog, writeLog } from "./lib/release-log.mjs";
  */
 
 const WRITE_ENABLED = process.env.WRITE_ENABLED === "true";
+const DRY_RUN = process.env.DRY_RUN === "true";
+const MODE = writeMode({ writeEnabled: WRITE_ENABLED, dryRun: DRY_RUN });
 const RS = "\x1e";
 
 const say = line => process.stdout.write(`${line}\n`);
@@ -82,6 +85,8 @@ function publishEvents(ref) {
 }
 
 function main() {
+  say(MODE.banner);
+
   const ref = mainRef();
   const log = readLog();
   const known = new Set(log.published.map(entry => entry.commit + entry.slug));
@@ -112,8 +117,11 @@ function main() {
         .join("\n")
   );
 
-  if (!WRITE_ENABLED) {
-    summary("\n`WRITE_ENABLED` is off — the log was **not** written.");
+  if (!MODE.may) {
+    summary(
+      `\n**Nothing written — ${MODE.blockedBy}.** In CI with writes enabled the entries ` +
+        "above would be committed to `main`."
+    );
     return;
   }
 
