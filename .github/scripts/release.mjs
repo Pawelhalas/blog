@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 import { askStructured } from "./lib/claude.mjs";
-import { git, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
+import { git, IN_CI, mainRef, postsAt, releaseCandidates } from "./lib/git.mjs";
 import { buildPrompt, generateImage } from "./lib/image.mjs";
 import {
   applyCorrections,
@@ -621,6 +621,17 @@ async function main() {
   }
 
   // ---- write --------------------------------------------------------------
+
+  if (!IN_CI) {
+    summary(
+      "\n**Not running in GitHub Actions — nothing was written.** This is a real run " +
+        "(`DRY_RUN` is off), which in CI would rewrite the post, commit, push the branch " +
+        "and open a pull request. Locally it stops here."
+    );
+    say("\n=== intended file content ===\n");
+    say(rebuilt);
+    return;
+  }
 
   writeFileSync(path, rebuilt);
   for (const other of unfeature) writeFileSync(other.path, other.text);

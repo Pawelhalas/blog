@@ -18,6 +18,11 @@ on:
     paths:
       - "src/content/posts/**"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Report what would be recorded — write nothing"
+        type: boolean
+        default: true
 
 # Both workflows commit .github/release-log.json to main, so they share one
 # queue. Never cancel here: a cancelled write leaves the log half-updated, and
@@ -71,3 +76,5 @@ jobs:
         run: node .github/scripts/post-publish.mjs
         env:
           WRITE_ENABLED: ${{ env.WRITE_ENABLED }}
+          # Empty on a push event, so a real publish still records itself.
+          DRY_RUN: ${{ inputs.dry_run }}

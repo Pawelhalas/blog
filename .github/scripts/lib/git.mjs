@@ -1,6 +1,21 @@
 import { execFileSync } from "node:child_process";
 import { isPublishedPost, POSTS_DIR } from "./posts.mjs";
 
+/**
+ * Whether this process is allowed to change the repository.
+ *
+ * WRITE_ENABLED gates the write and DRY_RUN gates only the notification, so
+ * running a script on a laptop with WRITE_ENABLED=true commits and pushes to
+ * main for real. That happened twice while this was being built: once seeding
+ * the release log, once fabricating a missed deadline that had to be reverted
+ * on main, taking an unmerged pull request along with it.
+ *
+ * Those flags are per-workflow configuration, not a safety mechanism for local
+ * runs. This is the safety mechanism. Pushing is something CI does; a laptop
+ * gets to compute the answer and print it.
+ */
+export const IN_CI = process.env.GITHUB_ACTIONS === "true";
+
 export function git(...args) {
   return execFileSync("git", args, {
     encoding: "utf8",
