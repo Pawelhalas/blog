@@ -56,10 +56,13 @@ env:
   # Roughly $0.02-$0.25 an image by tier. medium keeps the yearly cost in the
   # range the design budgeted for; high is noticeably better and ~4x the price.
   IMAGE_QUALITY: "medium"
-  # Orthography findings go in the PR body for Pawel to apply or ignore while
-  # reviewing the diff. Turning this on would apply them to the file instead,
-  # still under the mechanical guard in lib/orthography.mjs.
-  APPLY_ORTHOGRAPHY: "false"
+  # On since autonomous publishing: nobody reads the diff before it is live, so
+  # a reported typo would simply ship. What gets applied is only what
+  # lib/orthography.mjs classifies as provably safe - missing diacritics, word
+  # splits, case. A suggestion that would swap one real word for another is
+  # reported and never applied, because that is a judgement about Pawel's
+  # meaning rather than his spelling.
+  APPLY_ORTHOGRAPHY: "true"
 
 jobs:
   release:
@@ -143,6 +146,10 @@ jobs:
           # hypothetical: the commit which introduced this comment explained
           # what the markers do, and thereby triggered one of them.
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          # Needed so the script can raise an urgent issue when it publishes
+          # something incomplete - a post going out with no hero image.
+          GH_TOKEN: ${{ github.token }}
+          WRITE_ENABLED: "true"
 
       # A dry run writes nothing, so the hero image it generated (and paid for)
       # would otherwise vanish with the runner. On a real run the image is
@@ -161,6 +168,12 @@ jobs:
         run: |
           gh label create needs-image --color FBCA04 \
             --description "Published without a hero image - add one before merging" --force
+          gh label create automated-release --color 0E8A16 \
+            --description "Opened by release.yml and eligible for automatic publishing" --force
+          gh label create hold --color 5319E7 \
+            --description "Do not publish automatically" --force
+          gh label create urgent --color B60205 \
+            --description "Automation needs Pawel: publishing is blocked or shipped incomplete" --force
         env:
           GH_TOKEN: ${{ github.token }}
 

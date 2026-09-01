@@ -1,8 +1,8 @@
 # Release automation
 
 Drafts live in the repo behind an underscore. Removing the underscore on a
-`release/**` branch is the publish signal. Everything mechanical happens in
-GitHub Actions, and merging the pull request is the only human step.
+`release/**` branch is the publish signal. Everything after that happens in
+GitHub Actions, **including the merge** — there is no human step.
 
 Design and the reasoning behind each decision: `docs/release-automation-plan.md`
 (private repo).
@@ -19,12 +19,13 @@ A draft carries `title` and body only. `description`, `tags`, `pubDatetime`,
 `featured` and the hero image are the pipeline's job. **The filename is the
 permalink** — choose it before publishing, because renaming later breaks the URL.
 
-## The three workflows
+## The four workflows
 
 | Workflow           | Trigger                                      | Does                                                                                      |
 | ------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | `cadence.yml`      | daily cron                                   | Derives last-published from git, nags at due−2, logs a miss and restarts the clock at due |
 | `release.yml`      | push to `release/**`                         | The per-post pipeline, then opens the PR                                                  |
+| `publish.yml`      | every 30 minutes                             | Merges one prepared post when it is due. This is the step that used to be a person        |
 | `post-publish.yml` | push to `main` touching `src/content/posts/` | Records the post in the release log                                                       |
 
 ## Switches
@@ -46,6 +47,93 @@ opposite of a push, which is a real run.
 
 Nothing here can write from a laptop. Every commit, push and issue change also
 requires `GITHUB_ACTIONS=true`; see `lib/mode.mjs` for why that backstop exists.
+
+## Publishing happens without you
+
+`publish.yml` looks at every open release pull request every half hour and merges
+**at most one**, when all of these hold:
+
+- required checks are green
+- `now` has reached the post's `pubDatetime`, if it has one
+- the pull request has been open for `HOLD_MINUTES` (default 60)
+- there is no `hold` label and no `[hold]` in the last commit subject
+- it touches **only** `src/content/posts/**` and `src/assets/images/**`
+
+That last one is a security control, not tidiness. An unattended merge bot that
+can land changes to `.github/` can rewrite the rules it runs under, on a public
+repo where anyone can open a pull request. A release pull request touching
+anything else is refused and raises an urgent issue.
+
+GitHub's own auto-merge is deliberately **not** used: it fires the moment checks
+go green, which leaves no window to catch a mistake and no way to honour a future
+`pubDatetime`. Polling gives both, because the hold window and the schedule turn
+out to be the same mechanism.
+
+### Scheduling a post
+
+Put a `pubDatetime` in the draft's frontmatter and it becomes the publication
+time — the pull request waits until then:
+
+```yaml
+---
+title: Nowa automatyzacja
+pubDatetime: 2026-09-20T09:00:00Z
+---
+```
+
+Omit it and the post goes out as soon as the checks and the hold window allow.
+`description`, `tags`, `featured` and the hero image remain the automation's job.
+
+**One branch, one post.** That is what gives each post its own pull request and
+therefore its own schedule. Several un-prefixed posts on a single branch is a
+hard failure; put each on its own `release/<slug>` branch and stagger them with
+`pubDatetime`. The open pull requests are the queue.
+
+### Stopping a publish
+
+```bash
+gh pr edit <number> --add-label hold          # or
+git commit --allow-empty -m "Wait [hold]"     # subject line only
+```
+
+Either stops it indefinitely, and neither raises an alarm — holding something is
+a normal thing to do.
+
+### What it decides on its own, and what it asks about
+
+| Situation                                        | Outcome                                             |
+| ------------------------------------------------ | --------------------------------------------------- |
+| Hero image fails both retries                    | **Publishes**, labelled `needs-image`, urgent issue |
+| Suggestion that would change which word is used  | **Publishes**, correction reported and not applied  |
+| A new tag was minted                             | **Publishes**, noted in the PR body                 |
+| Checks red, conflicts, stray file paths          | **Blocks**, urgent issue, PR left open              |
+| No post, several posts, `.mdx`, no title, `\---` | **Blocks**, urgent issue                            |
+| Unreadable `pubDatetime`                         | **Blocks** — `z.date()` would fail the build anyway |
+
+"Blocks" always means the pull request stays open and nothing merges. Fixing the
+cause and pushing is enough; the pipeline is resumable.
+
+## Your words stay yours
+
+Orthography is applied without anyone reading the diff first, so the limit is
+enforced in code rather than asked for in a prompt. `correctionClass()` in
+`lib/orthography.mjs` sorts every proposed correction into:
+
+| Class        | Example              | Applied?  |
+| ------------ | -------------------- | --------- |
+| `diacritics` | `zgineło → zginęło`  | yes       |
+| `case`       | `polska → Polska`    | yes       |
+| `split`      | `napewno → na pewno` | yes       |
+| `other`      | `morze → może`       | **never** |
+
+The first three change how a word is spelled. `other` changes _which word it is_
+— and `morze` and `może` are both real Polish words, so nothing here can know
+which one you meant. Those are reported in the pull request body and left alone.
+
+The cost is deliberate and worth knowing: a real typo needing a letter added or
+removed (`widzalem → widziałem`) classifies as `other` and will reach the live
+post. Reporting a real error is a smaller failure than silently replacing a word
+you chose.
 
 ## Secrets
 
