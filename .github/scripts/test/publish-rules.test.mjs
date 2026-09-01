@@ -20,7 +20,7 @@ const ready = (overrides = {}) => ({
   pubDatetime: null,
   openedAt: "2026-09-10T09:00:00Z",
   labels: ["automated-release"],
-  lastCommitSubject: "Prepare my-post for publishing",
+  requiredChecks: ["Code standards & build", "Automation tests"],
   changedPaths: [
     "src/content/posts/my-post.md",
     "src/assets/images/my-post-blue.png",
@@ -70,27 +70,60 @@ describe("shouldMerge", () => {
     assert.match(result.reason, /hold/);
   });
 
-  test("[hold] in the last commit subject stops it", () => {
+  test("REGRESSION: the pipeline's own commit cannot un-hold a pull request", () => {
+    // What actually went wrong in rehearsal. [hold] used to be read from the
+    // branch's last commit subject, and release.mjs always commits "Prepare
+    // <slug> for publishing" on top of what the author pushed — so the marker
+    // was never the last subject and a post that had asked to be held published
+    // itself anyway.
+    //
+    // The marker now sets the `hold` label at prepare time, and only the label
+    // is consulted. Nothing about later commits can lift it.
     const result = shouldMerge(
       ready({
-        lastCommitSubject: "Prepare my-post [hold] until I check the data",
+        labels: ["automated-release", "hold"],
+        checks: GREEN,
       })
     );
     assert.equal(result.merge, false);
-    assert.match(result.reason, /\[hold\]/);
+    assert.equal(result.blocking, false);
+    assert.match(result.reason, /hold/);
   });
 
-  test("[hold] in the commit BODY does not stop it", () => {
-    // Same rule as [reimage] and [remeta]: the subject line is where an
-    // instruction belongs, the body is where you write about one. Matching the
-    // whole message fired a marker from a commit that merely explained it.
+  test("a pending non-required check does not gate the merge", () => {
+    // Cloudflare's preview deployment can sit pending for a long time and is
+    // not a required context. Naming the required checks is what keeps it from
+    // either blocking forever or, as in rehearsal, silently not counting.
     const result = shouldMerge(
       ready({
-        lastCommitSubject:
-          "Prepare my-post for publishing\n\nUse [hold] to stop this publishing.",
+        checks: [...GREEN, { name: "Cloudflare Pages", conclusion: null }],
       })
     );
     assert.equal(result.merge, true);
+  });
+
+  test("a required check missing from the rollup is a refusal, not a pass", () => {
+    const result = shouldMerge(
+      ready({
+        checks: [{ name: "Code standards & build", conclusion: "SUCCESS" }],
+      })
+    );
+    assert.equal(result.merge, false);
+    assert.match(result.reason, /waiting on: Automation tests/);
+  });
+
+  test("a failing required check blocks even when others passed", () => {
+    const result = shouldMerge(
+      ready({
+        checks: [
+          { name: "Code standards & build", conclusion: "SUCCESS" },
+          { name: "Automation tests", conclusion: "FAILURE" },
+        ],
+      })
+    );
+    assert.equal(result.merge, false);
+    assert.equal(result.blocking, true);
+    assert.match(result.reason, /Automation tests/);
   });
 
   test("a failing check blocks and escalates", () => {
@@ -110,7 +143,10 @@ describe("shouldMerge", () => {
   test("checks still running are a wait, not an alarm", () => {
     const result = shouldMerge(
       ready({
-        checks: [{ name: "Code standards & build", conclusion: null }],
+        checks: [
+          { name: "Code standards & build", conclusion: null },
+          { name: "Automation tests", conclusion: null },
+        ],
       })
     );
     assert.equal(result.merge, false);
