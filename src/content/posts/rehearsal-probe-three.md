@@ -1,7 +1,7 @@
 ---
 title: Trzecia próba generalna
 description: "Trzecia próba generalna przed publikacją: sprawdzam blokadę i harmonogram po naprawieniu dwóch błędów z poprzednich testów. Wpis zostanie usunięty."
-pubDatetime: 2026-09-05T09:00:00Z
+pubDatetime: 2026-09-01T09:00:00Z
 tags:
   - projekty
   - testy
