@@ -37,7 +37,7 @@ there, not in the scripts.
 | ------------------- | --------------------------------- | -------- | --------------------------------------------------------------------- |
 | `WRITE_ENABLED`     | `cadence.yml`, `post-publish.yml` | `true`   | They may commit to `main`. Off means observe-only, but they still nag |
 | `DRY_RUN_DEFAULT`   | `release.yml`                     | `false`  | A push to `release/**` is a real run: it commits and opens the PR     |
-| `APPLY_ORTHOGRAPHY` | `release.yml`                     | `false`  | Findings go in the PR body. On, they are applied under the guard      |
+| `APPLY_ORTHOGRAPHY` | `release.yml`                     | `true`   | Provably-safe classes are applied; everything else is reported only   |
 | `IMAGE_QUALITY`     | `release.yml`                     | `medium` | `low` / `medium` / `high` — roughly $0.02 / $0.06 / $0.25 an image    |
 
 `release.yml` and `cadence.yml` also take `workflow_dispatch` inputs that
@@ -56,7 +56,7 @@ requires `GITHUB_ACTIONS=true`; see `lib/mode.mjs` for why that backstop exists.
 - required checks are green
 - `now` has reached the post's `pubDatetime`, if it has one
 - the pull request has been open for `HOLD_MINUTES` (default 60)
-- there is no `hold` label and no `[hold]` in the last commit subject
+- there is no `hold` label
 - it touches **only** `src/content/posts/**` and `src/assets/images/**`
 
 That last one is a security control, not tidiness. An unattended merge bot that
@@ -92,12 +92,22 @@ hard failure; put each on its own `release/<slug>` branch and stagger them with
 ### Stopping a publish
 
 ```bash
-gh pr edit <number> --add-label hold          # or
-git commit --allow-empty -m "Wait [hold]"     # subject line only
+gh pr edit <number> --remove-label hold   # release it
+gh pr edit <number> --add-label hold      # stop it
+git commit -m "Publish my-post [hold]"    # prepare it, but hold it
 ```
 
-Either stops it indefinitely, and neither raises an alarm — holding something is
-a normal thing to do.
+**The label is the switch.** `[hold]` in a pushed commit subject only _sets_ the
+label, at prepare time, so a post can be held before its pull request exists.
+
+It works that way because the obvious design does not: `release.yml` commits its
+own `Prepare <slug> for publishing` on top of whatever you pushed, so the marker
+is never the branch's last commit. Reading it there looked correct, passed its
+tests, and never once fired — a rehearsal published a post that had asked to be
+held. One switch, in one place, is why that cannot happen again.
+
+Holding raises no alarm; it is a normal thing to do. Closing the pull request
+cancels the post entirely, leaving the branch and the draft intact.
 
 ### What it decides on its own, and what it asks about
 
@@ -139,7 +149,7 @@ you chose.
 
 | Secret              | Used by       | For                                                                     |
 | ------------------- | ------------- | ----------------------------------------------------------------------- |
-| `RELEASE_PAT`       | all three     | Opening the PR so `ci.yml` actually runs; pushing to a protected `main` |
+| `RELEASE_PAT`       | all four      | Opening the PR so `ci.yml` actually runs; pushing to a protected `main` |
 | `ANTHROPIC_API_KEY` | `release.yml` | Description, tags, image brief, orthography                             |
 | `OPENAI_API_KEY`    | `release.yml` | The hero image (`gpt-image-1`)                                          |
 

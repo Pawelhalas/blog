@@ -69,9 +69,16 @@ jobs:
     name: Prepare post for publishing
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Pushes made with GITHUB_TOKEN do not start new workflow runs, so the
-    # pipeline's own commit cannot retrigger this. Belt and braces anyway.
-    if: github.actor != 'github-actions[bot]'
+    # The pipeline's own commits must not retrigger it. Matched on the subject
+    # rather than the actor: the push now carries the PAT (see the checkout
+    # step), so the actor is Pawel either way, and only the message tells the
+    # two apart. Both subjects release.mjs can produce are listed here.
+    #
+    # A missed guard is not a loop: the second run finds nothing to commit and
+    # stops without pushing. This makes it terminate on the first run instead.
+    if: >-
+      !startsWith(github.event.head_commit.message, 'Prepare ') &&
+      !startsWith(github.event.head_commit.message, 'Regenerate the hero image')
 
     steps:
       - name: "☁️ Checkout repository"
@@ -79,10 +86,19 @@ jobs:
         with:
           # Full history: releaseCandidates() diffs this branch against main.
           fetch-depth: 0
-          # Deliberately NOT the PAT. This checkout's credentials push the
-          # pipeline's commit back to the branch, and a PAT push would retrigger
-          # this workflow in a loop. The PAT appears only in the PR step below,
-          # where triggering ci.yml is the entire point.
+          # The PAT, and it has to be.
+          #
+          # This checkout's credentials push the prepared commit back to the
+          # branch. With the default token that push produced a `pull_request`
+          # run stuck in `action_required` whenever the pull request already
+          # existed - so a second preparation cycle, which is just an author
+          # editing a post after the PR opened, left CI permanently unapproved.
+          # Publishing then waits on checks that will never run.
+          #
+          # Rehearsal caught exactly that. The loop this token was avoiding is
+          # prevented by the subject guard on the job instead, which is
+          # deterministic where the token behaviour was not.
+          token: ${{ secrets.RELEASE_PAT || github.token }}
 
       - name: "📦 Install pnpm"
         uses: pnpm/action-setup@v4

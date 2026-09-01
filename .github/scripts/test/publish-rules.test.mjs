@@ -116,6 +116,39 @@ describe("shouldMerge", () => {
     assert.match(result.reason, /waiting on: Automation tests/);
   });
 
+  test("a check awaiting manual approval escalates, never waits", () => {
+    // The stall rehearsal found. When the pipeline pushed its prepared commit
+    // to a pull request that already existed, the resulting CI run landed in
+    // action_required and never ran. Treating that as "still running" would
+    // have waited for ever, silently, on a check nobody knew needed a click.
+    const result = shouldMerge(
+      ready({
+        checks: [
+          { name: "Code standards & build", conclusion: "ACTION_REQUIRED" },
+          { name: "Automation tests", conclusion: "SUCCESS" },
+        ],
+      })
+    );
+    assert.equal(result.merge, false);
+    assert.equal(result.blocking, true);
+    assert.match(result.reason, /action required/);
+  });
+
+  test("a cancelled or timed-out check escalates too", () => {
+    for (const conclusion of ["CANCELLED", "TIMED_OUT", "STARTUP_FAILURE"]) {
+      const result = shouldMerge(
+        ready({
+          checks: [
+            { name: "Code standards & build", conclusion },
+            { name: "Automation tests", conclusion: "SUCCESS" },
+          ],
+        })
+      );
+      assert.equal(result.merge, false, conclusion);
+      assert.equal(result.blocking, true, conclusion);
+    }
+  });
+
   test("a failing required check blocks even when others passed", () => {
     const result = shouldMerge(
       ready({
