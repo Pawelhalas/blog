@@ -21,6 +21,13 @@
       "publishedAt": "2026-08-27T19:46:23+02:00",
       "commit": "f91dc63918515d5304b78c41a521c6d15c3a5c75",
       "imageBackground": "pale blue"
+    },
+    {
+      "slug": "rehearsal-probe-two",
+      "path": "src/content/posts/rehearsal-probe-two.md",
+      "publishedAt": "2026-09-02T00:11:07+02:00",
+      "commit": "95a0c10fa2b2bb9eaea35678518b38c2213de044",
+      "imageBackground": "pale green"
     }
   ],
   "misses": []
