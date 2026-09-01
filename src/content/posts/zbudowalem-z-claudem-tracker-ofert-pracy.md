@@ -5,7 +5,6 @@ pubDatetime: 2026-08-27T17:40:56Z
 tags:
   - AI
   - projekty
-featured: true
 ---
 
 ![Postać w kapeluszu, widziana od tyłu, patrzy na okno przeglądarki z listą ofert pracy; jedno z ogłoszeń zasłania karteczka z napisem „software house”.](../../assets/images/zbudowalem-z-claudem-tracker-ofert-pracy-blue.png)
