@@ -10,6 +10,8 @@ featured: true
 
 ![Zamknięta kłódka leżąca na otwartej kartce kalendarza ściennego](../../assets/images/rehearsal-probe-three-green.png)
 
+![Zamknięta kłódka leżąca na otwartej kartce kalendarza ściennego](../../assets/images/rehearsal-probe-three-green.png)
+
 Post testowy, trzecia próba. Sprawdzamy blokadę, harmonogram i publikację. Zostanie usunięty zaraz po sprawdzeniu.
 
 Poprzednie próby wykazały dwa błędy: blokada nie działała, a harmonogram był ignorowany. Oba zostały naprawione i teraz sprawdzamy je jeszcze raz.
