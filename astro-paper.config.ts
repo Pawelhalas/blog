@@ -2,7 +2,10 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://blog-b0i.pages.dev/",
+    // The custom domain, not the pages.dev preview URL. This is the base for
+    // canonical tags, OG image URLs, the sitemap and every link in the RSS
+    // feed - a feed reader following an item has to land on mniejszumu.pl.
+    url: "https://mniejszumu.pl/",
     title: "Mniej szumu",
     description: "Zapisuję własne myśli w świecie AI slopu.",
     author: "Paweł Halas",
