@@ -1,5 +1,5 @@
 ---
-title: Zbudowałem z Claudem tracker ofert pracy, a dołączyłem do firmy, której ogłoszenie tracker przede mną ukrył.
+title: Zbudowałem z Claudem tracker ofert pracy, a dołączyłem do firmy, której ogłoszenie tracker przede mną ukrył
 description: Skoro do software house'u Paweł nie chce, to oferty z software house'u Paweł nie zobaczy. 
 pubDatetime: 2026-08-27T17:40:56Z
 tags:
@@ -113,10 +113,11 @@ Ale mam kilka luźnych obserwacji ze swojego udziału w procesach rekrutacyjnych
 
 1. Hurtowe wysyłanie setek CV nie ma sensu, jeśli nie wiesz do jakich firm je wysyłasz i w zasadzie nie chcesz się tego dowiedzieć. 
 
-   Zastanawiałem się. czy nie pchnąć swojej automatyzacji o krok dalej i nie oddać Claude'owi kontroli nad wysyłką moich aplikacji. Ztwierdziłem jednak, że to o krok za daleko - sam wybiorę, gdzie chcę aplikować. 
+   Zastanawiałem się, czy nie rozwinąć mojej automatyzacji o dodatkowy krok - wysyłkę moich aplikacji do odpowiadających mi firm. Stwierdziłem jednak, że to o krok za daleko i sam wybiorę, gdzie chcę aplikować. Doszedłem też do wniosku, że zakres pracy do wykonania będzie niewspółmierny do efektu, jaki chcę osiągnąć. Nie zależało mi przecież na masowej wysyłce CV, a na wyszukaniu ofert, którymi będę realnie zainteresowany. 
 
-   Każdy z trzech procesów w którym brałem udział zaczynał się od screeningu, podczas którego rekruter upewniał się, że mam podstawową wiedzę o firmie, do której aplikowałem i faktycznie interesuję się podjęciem pracy w roli, na którą trwa rekrutacja. Raz nawet zapytałem z czego wynika ta weryfikacja i usłyszałem, że coraz częściej kandydaci nieumiejętnie korzystają z możliwości aplikowania jednym kliknięciem (przez Linkedin czy JJIT) i w efekcie nie mają nawet pojęcia w jakich procesach biorą udział. 
-   Screening odsiewa takich gagatków w pierwszej kolejności. A ja stałbym się takim gagatkiem, gdybym dobudował do trackera mechanizm aplikowania w moim imieniu. 
+   Tymczasem, każdy z trzech procesów w których brałem aktywny udział zaczynał się od screeningu, podczas którego rekruter upewniał się, że mam podstawową wiedzę o firmie, do której aplikowałem i faktycznie interesuję się podjęciem pracy w roli, na którą trwa rekrutacja. Gdy raz zapytałem nawet, z czego wynika ta weryfikacja, usłyszałem, że coraz częściej kandydaci nieumiejętnie korzystają z uproszczonych sposobów aplikowania (przez Linkedin czy JJIT) i wysyłają setki zgłoszeń - bez szczególnej analizy, gdzie te zgłosznia trafiają. 
+
+   Screening odsiewa takich gagatków w pierwszej kolejności. A ja stałbym się zapewne takim gagatkiem, gdybym dobudował do trackera mechanizm automatycznego aplikowania.  
 
 2. Linkedin to rak, z którego jednak trudno zrezygnować, jeśli rozglądasz się za nową pracą. 
 
@@ -134,9 +135,9 @@ Ale mam kilka luźnych obserwacji ze swojego udziału w procesach rekrutacyjnych
 
    Oczywiście, nie dostałem tamtej roboty. I słusznie, nie powinienem jej dostać. Nauka nie poszła jednak w las. Na kolejne rozmowy byłem już przygotowany.  
 
-   
+   ------
 
    Warto rzucić okiem: 
 
-   https://cavuno.com/blog/ats-platforms-public-job-posting-apis
+   - https://cavuno.com/blog/ats-platforms-public-job-posting-apis
 
