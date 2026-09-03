@@ -23,7 +23,16 @@ const t = useTranslations(locale);
   <Breadcrumb />
 
   <Main pageTitle={t.pages.tagsTitle}>
-    <ul class="flex flex-wrap gap-6">
+    {
+      /*
+      pt-4, not mt-4, on top of the heading's own mb-4: adjacent siblings'
+      margins collapse, so a top margin here would be swallowed by the
+      heading's and change nothing. Padding is the same mechanism post rows
+      already use (1rem block padding), which is why /posts clears its heading
+      by 2rem. Both index pages should breathe the same amount.
+    */
+    }
+    <ul class="flex flex-wrap gap-6 pt-4">
       {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
     </ul>
   </Main>

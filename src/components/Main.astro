@@ -33,7 +33,16 @@ const backUrl = config.features.showBackButton
     as the tag vocabulary spells it.
   */
   }
-  <h1 class="text-2xl sm:text-3xl">
+  {
+    /*
+    The heading sat hard against the content below it: the h1 carried no bottom
+    margin, so the only gap was whatever the first child brought with it - a
+    post row's 1rem of block padding on /posts, and nothing at all on /tags,
+    where the tag list starts flush. mb-4 roughly doubles the /posts gap and
+    gives /tags a real one, so every section heading breathes the same amount.
+  */
+  }
+  <h1 class="mb-4 text-2xl sm:text-3xl">
     {
       Array.isArray(pageTitle) ? (
         <>
