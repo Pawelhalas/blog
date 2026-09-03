@@ -2,9 +2,10 @@
 import { getCollection } from "astro:content";
 import { getRelativeLocaleUrl } from "astro:i18n";
 import { Image } from "astro:assets";
-// Square crop of IMG_9875.jpg. The original is a wide 3:4 street shot, and
-// object-fit can only take 25% off that - not enough to frame a portrait.
-import portrait from "@/assets/images/pawel-portrait.jpg";
+// Square crop of IMG_0110x1.jpg, which is kept intact for reuse in a post.
+// The original is a 3:4 street shot with the dog and Pawel side by side, and
+// object-fit can only take 25% off that - not enough to hold both subjects.
+import portrait from "@/assets/images/pawel-dog-square.jpg";
 import IconRss from "@/assets/icons/IconRss.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import Layout from "@/layouts/Layout.astro";
@@ -15,6 +16,7 @@ import NoiseWord from "@/components/NoiseWord.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { slugifyStr } from "@/utils/slugify";
+import { getAssetPath } from "@/utils/withBase";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
@@ -40,11 +42,15 @@ for (const post of sortedPosts) {
   }
 }
 
-const rssHref = getRelativeLocaleUrl(locale, "rss.xml");
+// getAssetPath, not getRelativeLocaleUrl: the latter appends a trailing slash,
+// and /rss.xml/ is a 404 on Pages - rss.xml is a file, not a directory route.
+const rssHref = getAssetPath("rss.xml");
 const postsHref = getRelativeLocaleUrl(locale, "posts");
 
-const aboutSummary =
-  "Cześć! Mam na imię Paweł i jestem product managerem z Wrocławia. Zapisuję tu swoje obserwacje i doświadczenia w ramach walki o jasność umysłu w świecie pełnym komunikacyjnego szumu i AI slopu.";
+// The about blurb closes by pointing at the first post, so the link target is
+// resolved through the router rather than hardcoded to the production domain -
+// it has to keep working on preview deploys too.
+const firstPostHref = getRelativeLocaleUrl(locale, "posts/i-po-co-to-komu/");
 ---
 
 <Layout title="Więcej hałasu, mniej szumu">
@@ -113,46 +119,6 @@ const aboutSummary =
     </section>
 
     {
-      /*
-      About: a short standing summary, not a post. The photo sits in the same
-      fixed-width left column the dates occupy in the post list below, so the
-      section rhymes with the rest of the page instead of introducing a second
-      layout. Square, hard-edged, no radius - rule 3 rules out rounded chips,
-      which is what keeps this reading as an ID photo rather than an avatar.
-    */
-    }
-    <section id="about" class="pb-12">
-      <h2 class="font-data mb-3 text-[11px] tracking-[0.12em] lowercase">
-        {t.nav.about}
-      </h2>
-      <div
-        class="grid grid-cols-[3.75rem_1fr] gap-x-4 sm:grid-cols-[4.5rem_1fr] sm:gap-x-8"
-      >
-        <Image
-          src={portrait}
-          alt="Paweł"
-          width={160}
-          densities={[1, 2]}
-          class="aspect-square w-full object-cover"
-        />
-        {
-          /*
-          Optical alignment: a paragraph's box top sits above its first cap by
-          half the leading plus the ascender-to-cap gap - measured at 7.64px
-          for IBM Plex Sans at 16px/26px, which is 0.478em. Expressed in em so
-          it holds if the type scale changes. Without it the text reads as
-          sitting low against the photo's hard top edge.
-        */
-        }
-        <p
-          class="text-muted-foreground mt-[-0.478em] max-w-[62ch] leading-relaxed"
-        >
-          {aboutSummary}
-        </p>
-      </div>
-    </section>
-
-    {
       featuredPosts.length > 0 && (
         <section id="featured" class="pb-8">
           <h2 class="font-data mb-2 text-[11px] tracking-[0.12em] lowercase">
@@ -192,6 +158,57 @@ const aboutSummary =
         </section>
       )
     }
+
+    {
+      /*
+      About: a short standing summary, not a post. It sits below the post list
+      rather than above it, so the page leads with what Pawel wrote and only
+      then says who he is. The photo occupies the same fixed-width left column
+      the dates occupy in the list above, so the section rhymes with the rest of
+      the page instead of introducing a second layout. Square, hard-edged, no
+      radius - rule 3 rules out rounded chips, which is what keeps this reading
+      as an ID photo rather than an avatar.
+    */
+    }
+    <section id="about" class="pb-12">
+      <h2 class="font-data mb-3 text-[11px] tracking-[0.12em] lowercase">
+        {t.nav.about}
+      </h2>
+      <div
+        class="grid grid-cols-[3.75rem_1fr] gap-x-4 sm:grid-cols-[4.5rem_1fr] sm:gap-x-8"
+      >
+        <Image
+          src={portrait}
+          alt="Paweł z psem na schodach kamienicy"
+          width={160}
+          densities={[1, 2]}
+          class="aspect-square w-full object-cover"
+        />
+        {
+          /*
+          Optical alignment: a paragraph's box top sits above its first cap by
+          half the leading plus the ascender-to-cap gap - measured at 7.64px
+          for IBM Plex Sans at 16px/26px, which is 0.478em. Expressed in em so
+          it holds if the type scale changes. Without it the text reads as
+          sitting low against the photo's hard top edge.
+        */
+        }
+        <p
+          class="text-muted-foreground mt-[-0.478em] max-w-[62ch] leading-relaxed"
+        >
+          Cześć! Mam na imię Paweł i jestem product managerem z Wrocławia. Różne
+          życiowe perypetie zachęciły mnie do zapisywania i publikowania swoich
+          obserwacji, przemyśleń i doświadczeń - zawodowych i prywatnych.
+          Wszystko to w ramach walki o jasność umysłu w świecie pełnym
+          komunikacyjnego szumu i AI slopu. Więcej o mnie i powodach powstania
+          tej strony przeczytasz w pierwszym opublikowanym na Mniej szumu <a
+            href={firstPostHref}
+            class="hover:text-accent underline decoration-dashed underline-offset-4"
+            >poście</a
+          >.
+        </p>
+      </div>
+    </section>
 
     {
       /*
