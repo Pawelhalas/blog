@@ -3,9 +3,7 @@ title: I po co to komu?
 description: Parę słów o powodach, dla których postawiłem tę stronę i po latach wracam do pisania.
 pubDatetime: 2026-08-11T09:00:00Z
 tags:
-  - product management
-  - AI
-  - projekty
+  - mniej szumu
 ---
 
 ![Dzieciak ogląda mecz Ligi Mistrzów przed telewizorem](../../assets/images/kid-watching-champions-league-violet.png)
@@ -32,6 +30,6 @@ Zresztą, wydaje mi się też, że własne, unikalne, niezaśmiecone przez inter
 
 Po trzecie w końcu, w następstwie małych zawodowych zawirowań (o których kiedyś pewnie napiszę), mam teraz trochę więcej czasu. Jako że zawodowo jestem związany z branżą IT i budowaniem produktów cyfrowych, mocno nosi mnie, by wypchnąć coś na produkcję. Mniej szumu wypuszczam więc też z myślą o zapisywaniu obserwacji ze świata technologii i product managementu oraz o zbieraniu notatek i wniosków z własnych przygód w prototypowaniu, walidacji pomysłów oraz wyciągania informacji o problemach, które warto rozwiązywać.
 
-O czym więc dokładnie będzie ta strona, dopiero się okaże. Obiecałem sobie przy okazji spisywania założeń tworzenia Mniej szumu, że nic, co opublikuję, nie powstanie z wykorzystaniem AI. Nie ma być idealnie - ma być po mojemu. Drugim oczekiwaniem, jakie sam przed sobą stawiam, jest konkretna wydawnicza kadencja. Nowe wpisy powinny pojawiać się nie rzadziej niż raz na dwa tygodnie.
+O czym więc dokładnie będzie ta strona, dopiero się okaże. Obiecałem sobie przy okazji spisywania założeń tworzenia *Mniej szumu*, że nic, co opublikuję, nie powstanie z wykorzystaniem AI. Nie ma być idealnie - ma być po mojemu. Drugim oczekiwaniem, jakie sam przed sobą stawiam, jest konkretna wydawnicza kadencja. Nowe wpisy powinny pojawiać się nie rzadziej niż raz na dwa tygodnie.
 
 Wszystko inne wyjdzie w praniu. 

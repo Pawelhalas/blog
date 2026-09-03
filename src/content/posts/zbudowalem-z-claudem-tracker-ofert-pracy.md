@@ -5,6 +5,8 @@ pubDatetime: 2026-08-27T17:40:56Z
 tags:
   - AI
   - projekty
+  - praca 
+ 
 featured: true
 ---
 
