@@ -10,7 +10,11 @@ export default defineAstroPaperConfig({
     description: "Zapisuję własne myśli w świecie AI slopu.",
     author: "Paweł Halas",
     profile: "https://www.linkedin.com/in/pawel-halas-1b921264",
-    ogImage: "default-og.jpg",
+    // Deliberately unset. The resolver falls back to the generated /og.png
+    // whenever the named file is missing from public/, and that generated card
+    // is the one we want - see src/pages/og.png.ts. Naming a file here would
+    // pin the preview to a static image instead.
+    ogImage: undefined,
     lang: "pl",
     timezone: "Europe/Warsaw",
     dir: "ltr",

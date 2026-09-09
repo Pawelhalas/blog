@@ -1,12 +1,24 @@
 import type { APIRoute } from "astro";
 import { getCollection } from "astro:content";
-import { fontData, experimental_getFontFileURL } from "astro:assets";
-import satori from "satori";
-import sharp from "sharp";
-import { getFontPathByWeight } from "@/utils/getFontPathByWeight";
+import {
+  label,
+  loadOgFonts,
+  noiseWord,
+  ogColors,
+  ogFrame,
+  renderOgCard,
+} from "@/utils/ogCard";
 import { getPostSlug } from "@/utils/getPostPaths";
 import config from "@/config";
 
+/**
+ * The per-post link preview.
+ *
+ * Same shell as the site card, with the roles swapped: the title takes the
+ * space the wordmark holds on the homepage, and the mark drops to the footer at
+ * the size the header uses it. The title is set in the accent, as it is on the
+ * post page itself.
+ */
 export async function getStaticPaths() {
   if (!config.features.dynamicOgImage) {
     return [];
@@ -27,170 +39,36 @@ export const GET: APIRoute = async ({ props, url }) => {
     return new Response(null, { status: 404, statusText: "Not found" });
   }
 
-  const fonts = fontData["--font-sans"];
-  const regularFontPath = getFontPathByWeight(fonts, 400);
-  const boldFontPath = getFontPathByWeight(fonts, 700);
+  const fonts = await loadOgFonts(url);
 
-  if (regularFontPath === undefined || boldFontPath === undefined) {
-    throw new Error("Cannot find the font path.");
-  }
-
-  const [regularData, boldData] = await Promise.all([
-    fetch(experimental_getFontFileURL(regularFontPath, url)).then(res =>
-      res.arrayBuffer()
-    ),
-    fetch(experimental_getFontFileURL(boldFontPath, url)).then(res =>
-      res.arrayBuffer()
-    ),
-  ]);
-
-  const svg = await satori(
-    {
-      type: "div",
-      props: {
-        style: {
-          background: "#fefbfb",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+  const card = ogFrame(
+    [
+      {
+        type: "div",
+        props: {
+          style: {
+            display: "flex",
+            marginBottom: 36,
+            // Five lines at this size, then clipped. A title that long is a
+            // content problem, not a layout one.
+            maxHeight: 360,
+            overflow: "hidden",
+            fontSize: 62,
+            fontWeight: 700,
+            lineHeight: 1.15,
+            color: ogColors.accent,
+          },
+          children: props.data.title,
         },
-        children: [
-          {
-            type: "div",
-            props: {
-              style: {
-                position: "absolute",
-                top: "-1px",
-                right: "-1px",
-                border: "4px solid #000",
-                background: "#ecebeb",
-                opacity: "0.9",
-                borderRadius: "4px",
-                display: "flex",
-                justifyContent: "center",
-                margin: "2.5rem",
-                width: "88%",
-                height: "80%",
-              },
-            },
-          },
-          {
-            type: "div",
-            props: {
-              style: {
-                border: "4px solid #000",
-                background: "#fefbfb",
-                borderRadius: "4px",
-                display: "flex",
-                justifyContent: "center",
-                margin: "2rem",
-                width: "88%",
-                height: "80%",
-              },
-              children: {
-                type: "div",
-                props: {
-                  style: {
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    margin: "20px",
-                    width: "90%",
-                    height: "90%",
-                  },
-                  children: [
-                    {
-                      type: "p",
-                      props: {
-                        style: {
-                          fontSize: 72,
-                          fontWeight: "bold",
-                          maxHeight: "84%",
-                          overflow: "hidden",
-                        },
-                        children: props.data.title,
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          display: "flex",
-                          justifyContent: "space-between",
-                          width: "100%",
-                          marginBottom: "8px",
-                          fontSize: 28,
-                        },
-                        children: [
-                          {
-                            type: "span",
-                            props: {
-                              children: [
-                                "by ",
-                                {
-                                  type: "span",
-                                  props: {
-                                    style: { color: "transparent" },
-                                    children: '"',
-                                  },
-                                },
-                                {
-                                  type: "span",
-                                  props: {
-                                    style: {
-                                      overflow: "hidden",
-                                      fontWeight: "bold",
-                                    },
-                                    children: props.data.author,
-                                  },
-                                },
-                              ],
-                            },
-                          },
-                          {
-                            type: "span",
-                            props: {
-                              style: { overflow: "hidden", fontWeight: "bold" },
-                              children: config.site.title,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        ],
       },
-    },
-    {
-      width: 1200,
-      height: 630,
-      embedFont: true,
-      fonts: [
-        {
-          name: "IBM Plex Sans",
-          data: regularData,
-          weight: 400,
-          style: "normal",
-        },
-        {
-          name: "IBM Plex Sans",
-          data: boldData,
-          weight: 700,
-          style: "normal",
-        },
-      ],
-    }
+    ],
+    [
+      // Standing in for the header mark, so the header mark's amplitude.
+      noiseWord(config.site.title.toLowerCase(), 26, 0.35),
+      label(config.site.author),
+    ],
+    "flex-end"
   );
 
-  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-
-  return new Response(new Uint8Array(pngBuffer), {
-    headers: { "Content-Type": "image/png" },
-  });
+  return renderOgCard(card, fonts);
 };

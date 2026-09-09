@@ -1,168 +1,57 @@
 import type { APIRoute } from "astro";
-import satori from "satori";
-import sharp from "sharp";
-import { fontData, experimental_getFontFileURL } from "astro:assets";
-import { getFontPathByWeight } from "@/utils/getFontPathByWeight";
+import {
+  label,
+  loadOgFonts,
+  noiseWord,
+  ogColors,
+  ogFrame,
+  renderOgCard,
+} from "@/utils/ogCard";
 import config from "@/config";
 
+/**
+ * The site-wide link preview: the homepage hero, held still.
+ *
+ * Same two-part line, same wordmark with the same torn bands, same paper. A
+ * card pasted into LinkedIn or Slack should be recognisable as the page it
+ * points at before the reader has read a word of it.
+ */
 export const GET: APIRoute = async context => {
-  const fonts = fontData["--font-sans"];
-  const regularFontPath = getFontPathByWeight(fonts, 400);
-  const boldFontPath = getFontPathByWeight(fonts, 700);
+  const fonts = await loadOgFonts(context.url);
 
-  if (regularFontPath === undefined || boldFontPath === undefined) {
-    throw new Error("Cannot find the font path.");
-  }
+  // The quiet half of the site's line. It is written into the homepage markup
+  // rather than the config (src/pages/index.astro), so it is repeated here.
+  const EYEBROW = "więcej hałasu";
 
-  const [regularData, boldData] = await Promise.all([
-    fetch(experimental_getFontFileURL(regularFontPath, context.url)).then(res =>
-      res.arrayBuffer()
-    ),
-    fetch(experimental_getFontFileURL(boldFontPath, context.url)).then(res =>
-      res.arrayBuffer()
-    ),
-  ]);
-
-  const svg = await satori(
-    {
-      type: "div",
-      props: {
-        style: {
-          background: "#fefbfb",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "IBM Plex Sans",
+  const card = ogFrame(
+    [
+      label(EYEBROW),
+      {
+        type: "div",
+        props: {
+          style: { display: "flex", marginTop: 18 },
+          // The hero's role, so the hero's amplitude.
+          children: noiseWord(config.site.title.toLowerCase(), 108, 1),
         },
-        children: [
-          {
-            type: "div",
-            props: {
-              style: {
-                position: "absolute",
-                top: "-1px",
-                right: "-1px",
-                border: "4px solid #000",
-                background: "#ecebeb",
-                opacity: "0.9",
-                borderRadius: "4px",
-                display: "flex",
-                justifyContent: "center",
-                margin: "2.5rem",
-                width: "88%",
-                height: "80%",
-              },
-            },
-          },
-          {
-            type: "div",
-            props: {
-              style: {
-                border: "4px solid #000",
-                background: "#fefbfb",
-                borderRadius: "4px",
-                display: "flex",
-                justifyContent: "center",
-                margin: "2rem",
-                width: "88%",
-                height: "80%",
-              },
-              children: {
-                type: "div",
-                props: {
-                  style: {
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    margin: "20px",
-                    width: "90%",
-                    height: "90%",
-                  },
-                  children: [
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          height: "90%",
-                          maxHeight: "90%",
-                          overflow: "hidden",
-                          textAlign: "center",
-                        },
-                        children: [
-                          {
-                            type: "p",
-                            props: {
-                              style: { fontSize: 72, fontWeight: "bold" },
-                              children: config.site.title,
-                            },
-                          },
-                          {
-                            type: "p",
-                            props: {
-                              style: { fontSize: 28 },
-                              children: config.site.description,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                    {
-                      type: "div",
-                      props: {
-                        style: {
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          width: "100%",
-                          marginBottom: "8px",
-                          fontSize: 28,
-                        },
-                        children: {
-                          type: "span",
-                          props: {
-                            style: { overflow: "hidden", fontWeight: "bold" },
-                            children: new URL(config.site.url).hostname,
-                          },
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        ],
       },
-    },
-    {
-      width: 1200,
-      height: 630,
-      embedFont: true,
-      fonts: [
-        {
-          name: "IBM Plex Sans",
-          data: regularData,
-          weight: 400,
-          style: "normal",
+      {
+        type: "div",
+        props: {
+          style: {
+            display: "flex",
+            marginTop: 34,
+            fontSize: 34,
+            color: ogColors.mutedForeground,
+          },
+          children: config.site.description,
         },
-        {
-          name: "IBM Plex Sans",
-          data: boldData,
-          weight: 700,
-          style: "normal",
-        },
-      ],
-    }
+      },
+    ],
+    [
+      label(new URL(config.site.url).hostname, ogColors.foreground),
+      label(config.site.author),
+    ]
   );
 
-  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-
-  return new Response(new Uint8Array(pngBuffer), {
-    headers: { "Content-Type": "image/png" },
-  });
+  return renderOgCard(card, fonts);
 };
