@@ -1,12 +1,15 @@
 ---
-
 title: Czy to już prokrastynacja?
-
-description: Zbudowałem automatyzację publikacji nowych postów, by całą swoją uwagę skupić na pisaniu. 
-
+description: "Zbudowałem automat, który publikuje posty za mnie: przypomina, koryguje, generuje ilustracje i wdraża. Działa bezbłędnie i czeka na teksty, których nie piszę."
 pubDatetime: 2026-09-20T19:00:00Z
-
+tags:
+  - projekty
+  - AI
+  - product management
+featured: true
 ---
+
+![Rozbudowana maszyna z taśmociągiem wypuszczająca pustą kartkę papieru, obok pustego biurka z krzesłem](../../assets/images/czy-to-juz-prokrastynacja-green.png)
 
 "Skoro buduję stronę, która ma pomóc mi syntetyzować myśli, potrzebuję pozbyć się wszelkich dystraktorów odciągających mnie od pisania." Do takiego wniosku doszedłem po opublikowaniu trzech postów. 
 
@@ -23,7 +26,7 @@ W każdym razie, zabrałem się za zbudowanie systemu, który ogarnie w moim imi
 
 ### Jak działa automatyzacja? Zależało mi, by zbudować rozwiązanie end-to-end.
 
-Po pierwsze, przypomnienia o terminowych publikacjach. Od systemu dostaję notyfikację mailową, jeśli minęło już 12 dni od ostatniej wydawki, a ja nie mam jeszcze gotowego tekstu w folderze z gotowymi postami. O ile intencjonalnie nie prowadzę predefiniowanego planu wydawniczego, to [obiecałem sobie](https://mniejszumu.pl/posts/i-po-co-to-komu/), że będę wrzucał coś na stronę nie rzadziej niż co 2 tygodnie. Przypominajka o zbliżajacym się terminie na pewno mi nie zaszkodzi. 
+Po pierwsze, przypomnienia o terminowych publikacjach. Od systemu dostaję notyfikację mailową, jeśli minęło już 12 dni od ostatniej wydawki, a ja nie mam jeszcze gotowego tekstu w folderze z gotowymi postami. O ile intencjonalnie nie prowadzę predefiniowanego planu wydawniczego, to [obiecałem sobie](https://mniejszumu.pl/posts/i-po-co-to-komu/), że będę wrzucał coś na stronę nie rzadziej niż co 2 tygodnie. Przypominajka o zbliżającym się terminie na pewno mi nie zaszkodzi. 
 
 Do rozpoczęcia procesu wydawniczego, automatyzacja potrzebuje jedynie, bym zasilił folder z contentem gotowym do publikacji plikiem. Plik mogę jednak dodać folderu w każdej chwili i trzymać go tam tak długo, jak chcę - bez obaw o przypadkowy release. Sygnałem o gotowości wpisu do wypuszczenia jest zdjęcie podkreślnika z przedrostka nazwy dokumentu ( _nazwa-pliku.md -->  nazwa-pliku.md).  
 
