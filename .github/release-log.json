@@ -21,6 +21,13 @@
       "publishedAt": "2026-08-27T19:46:23+02:00",
       "commit": "f91dc63918515d5304b78c41a521c6d15c3a5c75",
       "imageBackground": "pale blue"
+    },
+    {
+      "slug": "czy-to-juz-prokrastynacja",
+      "path": "src/content/posts/czy-to-juz-prokrastynacja.md",
+      "publishedAt": "2026-09-20T22:01:12+02:00",
+      "commit": "736450373ec808298a3d6347b7e385ef55875dd4",
+      "imageBackground": "pale green"
     }
   ],
   "misses": [
