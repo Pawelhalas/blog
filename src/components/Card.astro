@@ -162,8 +162,24 @@ const shareUrl = new URL(href, Astro.site ?? Astro.url.origin).href;
     align-self: start;
   }
 
-  .post-row__thumb :global(img) {
+  /* The small /posts thumbnails are cropped to a common 16:9 so the rows keep
+     one rhythm regardless of what shape the source image is. */
+  .post-row--rich .post-row__thumb :global(img) {
     aspect-ratio: 16 / 9;
+  }
+
+  /* The featured hero is not cropped: it is the post's own illustration shown
+     at size, and the 3:2 sources lose ~16% of their height to a 16:9 box.
+     Intrinsic ratio, so the whole drawing is visible. */
+  .post-row--featured .post-row__thumb :global(img) {
+    aspect-ratio: auto;
+    object-fit: contain;
+    /* Capped by height as well as width, so a portrait hero shrinks instead
+       of pushing the headline under the fold. Width follows, so the border
+       still sits on the image rather than around empty bands. */
+    width: auto;
+    max-width: 100%;
+    max-height: 26rem;
   }
 
   .post-row--featured .post-row__date {
