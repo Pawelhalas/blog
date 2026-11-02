@@ -45,6 +45,11 @@
       "dueAt": "2026-10-18T20:01:12.000Z",
       "loggedAt": "2026-10-19T14:39:35.121Z",
       "daysSinceLastPublish": 29
+    },
+    {
+      "dueAt": "2026-11-01T20:01:12.000Z",
+      "loggedAt": "2026-11-02T17:03:08.460Z",
+      "daysSinceLastPublish": 43
     }
   ]
 }
