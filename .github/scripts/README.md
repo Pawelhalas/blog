@@ -159,19 +159,48 @@ you chose.
 opened with the default token would skip `ci.yml` entirely and publish a post
 that was never type-checked.
 
-The pipeline's own commit back to the release branch deliberately uses the
-default token, for the same reason in reverse — it must not retrigger
-`release.yml`.
+The pipeline's own `Prepare <slug> for publishing` commit is pushed with the PAT
+too (the checkout's credentials), so it **does** start another `release.yml` run.
+Two things make that harmless: the job's subject guard skips it, and the
+concurrency group queues it behind the run that pushed it instead of cancelling
+that run. See "When something goes wrong" for what happened before the second.
 
 ## When something goes wrong
 
-| When                                | Then                                                                                                            |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `astro check`, lint or format fails | PR goes red, merge blocked. Fix locally, push to the same branch                                                |
-| Image generation fails              | One retry, then the PR opens without an image, labelled `needs-image`                                           |
-| Image is valid but wrong            | Push an empty commit containing `[reimage]` — only the image is regenerated, frontmatter and copy are untouched |
-| Zero or two candidate posts         | Hard failure with the file list. One branch, one post                                                           |
-| Post is `.mdx`                      | Hard failure. MDX entries expose no `body`, so `getHeroImage.ts` can never find a hero image                    |
+| When                                         | Then                                                                                                                             |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `astro check`, lint or format fails          | PR goes red, merge blocked. Fix locally, push to the same branch                                                                 |
+| Image generation fails                       | One retry, then the PR opens without an image, labelled `needs-image`                                                            |
+| Image is valid but wrong                     | Push an empty commit containing `[reimage]` — only the image is regenerated, frontmatter and copy are untouched                  |
+| `[reimage]` on a post with no generated hero | Runs as a normal preparation and **prepends** a hero. It never replaces an image it did not make — see below                     |
+| Branch prepared, but no PR opened            | Fixed 2026-11-15. If it recurs: merge `main` into the branch and push, or open the PR by hand with the `automated-release` label |
+| Zero or two candidate posts                  | Hard failure with the file list. One branch, one post                                                                            |
+| Post is `.mdx`                               | Hard failure. MDX entries expose no `body`, so `getHeroImage.ts` can never find a hero image                                     |
+
+### What `[reimage]` will replace
+
+Only an image that is **the first thing in the body** _and_ is named
+`<slug>-<colour>.png` — the pipeline's own filename, colour being one of
+`BACKGROUNDS` in `lib/release-log.mjs`. That is `pipelineHero()` in
+`lib/posts.mjs`. Anything else, `[reimage]` leaves alone and prepends a new hero
+above it.
+
+It used to take the first `../../assets/images/` image anywhere in the body. On
+a post with your own photos and no generated hero, that was your photo: its
+markdown replaced and its file overwritten with the generated PNG.
+
+The cost: posts whose hero predates the naming convention
+(`ai-w-sluzbie-tym-dobrym`, `i-po-co-to-komu`) would get a second image stacked
+on top. Delete the old hero line by hand first if you ever reimage one of them.
+
+### Why a prepared branch could end up with no pull request
+
+`release.mjs` pushes its `Prepare <slug>` commit, which queues another
+`release.yml` run in the same concurrency group. With `cancel-in-progress: true`
+that new run cancelled the one that pushed it — before it reached the pull
+request step — and was then itself skipped by the subject guard. Nobody opened
+the PR. It hit #60 on 2026-09-20 and #70 twice on 2026-11-15. The group now
+queues instead of cancelling.
 
 ## The hero image is decided once
 

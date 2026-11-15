@@ -110,6 +110,42 @@ export function heroImageMarkdown(alt, filename) {
   return `![${alt}](../../assets/images/${filename})`;
 }
 
+/**
+ * The hero image this pipeline generated earlier, or null.
+ *
+ * `[reimage]` replaces the hero's markdown and overwrites its file, so getting
+ * this wrong destroys something. It used to match the first
+ * `../../assets/images/` image anywhere in the body — on a post with its own
+ * photos and no generated hero, that was the author's photo, which reimage
+ * would then have overwritten with a generated PNG.
+ *
+ * So an image counts only when both hold:
+ *   - it is the first thing in the body, which is where withHeroImage puts it
+ *   - its filename is the pipeline's own `<slug>-<colour>.png`, colour being
+ *     the last word of one of `colours` (BACKGROUNDS in lib/release-log.mjs)
+ *
+ * Anything else returns null, and the caller prepends a hero as on a first run.
+ */
+const LEADING_IMAGE =
+  /^\s*!\[([^\]]*)\]\(\s*<?(\.\.\/\.\.\/assets\/images\/[^)>\s]+)>?\s*\)/;
+
+export function pipelineHero(body, slug, colours) {
+  const match = body.match(LEADING_IMAGE);
+  if (!match) return null;
+  const file = match[2].replace(/^.*\//, "");
+  const ours = colours.some(
+    colour => file === `${slug}-${colour.split(" ").at(-1)}.png`
+  );
+  if (!ours) return null;
+  return { alt: match[1], file, markdown: match[0].trimStart() };
+}
+
+/** Swaps the leading hero `pipelineHero` found for `markdown`. */
+export function replaceHeroImage(body, hero, markdown) {
+  const at = body.indexOf(hero.markdown);
+  return body.slice(0, at) + markdown + body.slice(at + hero.markdown.length);
+}
+
 export function withHeroImage(body, markdown) {
   return `\n${markdown}\n\n${body.replace(/^\s+/, "")}`;
 }
