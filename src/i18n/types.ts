@@ -37,6 +37,7 @@ export interface UIStrings {
   footer: {
     copyright: string;
     allRightsReserved: string;
+    emailCopied: string;
   };
   pages: {
     tagTitle: string;
