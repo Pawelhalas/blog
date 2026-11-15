@@ -23,12 +23,40 @@ on:
         type: boolean
         default: true
 
-# One run per branch. Cancelling the older one is safe because a run is
-# resumable: whatever it committed before dying is picked up by the next, which
-# then opens the pull request. Without that property this would strand branches.
+# One run per branch, and the older one is allowed to FINISH.
+#
+# This used to cancel in progress, on the reasoning that a run is resumable so
+# whatever it committed before dying gets picked up by the next one, which then
+# opens the pull request. That reasoning is wrong, and it stranded a real post
+# on 2026-09-20 (PR #60).
+#
+# The run that would "pick it up" is the run triggered by the pipeline's OWN
+# `Prepare ...` push — and that is exactly the run the job's subject guard below
+# refuses to start. So the sequence was:
+#
+#   1. author pushes            -> run A starts
+#   2. run A commits + pushes `Prepare ...`
+#   3. that push queues run B, in this same group
+#   4. cancel-in-progress kills run A ... four seconds before it opened the PR
+#   5. run B starts, hits the subject guard, skips
+#   -> branch fully prepared, no pull request, nothing raised
+#
+# Two guards cancelling each other out. It is a race: run A only survives if it
+# reaches the PR step within seconds of its own push. It won in August and lost
+# in September, which is why this looked stable for a month.
+#
+# `false` keeps the invariant that matters — never two pipelines on one branch
+# at once — because a queued run waits rather than running alongside. It only
+# gives up killing the older one, which is the thing that was breaking it.
+#
+# Cost of waiting instead of cancelling: if the author pushes an edit mid-run,
+# run A finishes against stale content before run B runs against the new. Run A
+# then usually fails to push (non-fast-forward, the known un-rebased push) and
+# run B does the real work. Metadata and the hero image are cached per branch,
+# so the duplicate is cheap. That is strictly better than stranding the branch.
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
