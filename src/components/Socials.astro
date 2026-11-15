@@ -1,8 +1,10 @@
 ---
 import config from "@/config";
 import LinkButton from "./LinkButton.astro";
+import { useTranslations } from "@/i18n";
 
 const { site, socials } = config;
+const t = useTranslations(Astro.currentLocale);
 
 const icons = import.meta.glob<{
   default: (_props: Record<string, unknown>) => unknown;
@@ -12,25 +14,92 @@ const items = await Promise.all(
   socials.map(async ({ name, url, linkTitle }) => {
     const mod = await icons[`/src/assets/icons/socials/${name}.svg`]?.();
     const Icon = mod?.default;
+    const isMail = url.startsWith("mailto:");
     const title =
       linkTitle ??
-      (url.startsWith("mailto:") || name === "mail"
+      (isMail || name === "mail"
         ? `Send an email to ${site.author}`
         : `${site.author} on ${name.charAt(0).toUpperCase() + name.slice(1)}`);
-    return { url, title, Icon };
+    // Bare address, without "mailto:" or any ?subject= query.
+    const email = isMail ? url.slice("mailto:".length).split("?")[0] : undefined;
+    return { url, title, Icon, email };
   })
 );
 ---
 
-<div class="flex flex-wrap items-center gap-1">
+<div class="relative flex flex-wrap items-center gap-1" data-email-scope>
   {
-    items.map(({ url, title, Icon }) =>
+    items.map(({ url, title, Icon, email }) =>
       Icon ? (
-        <LinkButton href={url} class="p-2 hover:rotate-6 sm:p-1" title={title}>
+        <LinkButton
+          href={url}
+          class="p-2 hover:rotate-6 sm:p-1"
+          title={title}
+          data-copy-email={email}
+        >
           <Icon class="inline-block size-6 scale-125 fill-transparent stroke-current stroke-2 opacity-90 group-hover:fill-transparent sm:scale-110" />
           <span class="sr-only">{title}</span>
         </LinkButton>
       ) : null
     )
   }
+  {/*
+    Positioned out of flow so the confirmation never shifts the icons. Empty
+    until a click; aria-live announces it to screen readers.
+  */}
+  <span
+    data-email-status
+    data-done={t.footer.emailCopied}
+    aria-live="polite"
+    class="font-data pointer-events-none absolute right-0 bottom-full text-xs whitespace-nowrap"
+  ></span>
 </div>
+
+<script>
+  /*
+    A mailto: link only works if the reader's computer has an email app set as
+    its default. Readers who use webmail (Gmail in a tab) click and nothing
+    happens. So the click does both: the link still opens the email app where
+    there is one, and the address is copied so the click is never a dead end.
+    No preventDefault - the mailto: navigation must go ahead.
+  */
+  const REVERT_AFTER_MS = 2400;
+
+  if (!document.documentElement.dataset.copyEmailBound) {
+    document.documentElement.dataset.copyEmailBound = "true";
+
+    document.addEventListener("click", async event => {
+      const link = (event.target as Element).closest<HTMLElement>(
+        "[data-copy-email]"
+      );
+      if (!link) return;
+
+      const email = link.dataset.copyEmail ?? "";
+      const status = link
+        .closest("[data-email-scope]")
+        ?.querySelector<HTMLElement>("[data-email-status]");
+
+      let copied = true;
+      try {
+        await navigator.clipboard.writeText(email);
+      } catch {
+        copied = false;
+      }
+      if (!status) return;
+
+      // If copying failed too, show the address itself so the reader can
+      // still read it off the page.
+      status.textContent = copied ? (status.dataset.done ?? "") : email;
+
+      window.clearTimeout(Number(status.dataset.revertTimer));
+      status.dataset.revertTimer = String(
+        window.setTimeout(
+          () => {
+            status.textContent = "";
+          },
+          copied ? REVERT_AFTER_MS : REVERT_AFTER_MS * 3
+        )
+      );
+    });
+  }
+</script>

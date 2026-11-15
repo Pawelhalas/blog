@@ -39,6 +39,7 @@ export default {
   footer: {
     copyright: "Copyright",
     allRightsReserved: "All rights reserved.",
+    emailCopied: "Address copied",
   },
   pages: {
     tagTitle: "Tag",
