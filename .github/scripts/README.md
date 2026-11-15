@@ -151,7 +151,7 @@ you chose.
 | ------------------- | ------------- | ----------------------------------------------------------------------- |
 | `RELEASE_PAT`       | all four      | Opening the PR so `ci.yml` actually runs; pushing to a protected `main` |
 | `ANTHROPIC_API_KEY` | `release.yml` | Description, tags, image brief, orthography                             |
-| `OPENAI_API_KEY`    | `release.yml` | The hero image (`gpt-image-1`)                                          |
+| `OPENAI_API_KEY`    | `release.yml` | The hero image (`gpt-image-2.6-sunburst`)                               |
 
 `RELEASE_PAT` must be a fine-grained PAT with **contents: write** and
 **pull requests: write**. It cannot be `GITHUB_TOKEN`: GitHub's docs state that
@@ -175,7 +175,7 @@ default token, for the same reason in reverse — it must not retrigger
 
 ## The hero image is decided once
 
-`gpt-image-1` is not deterministic, so the same prompt drawn twice gives two
+The image model is not deterministic, so the same prompt drawn twice gives two
 different pictures. An early version regenerated on every run, which meant the
 dry-run preview showed you one image and the real run published another — a
 checkpoint that decided nothing, and worse than having no preview at all.

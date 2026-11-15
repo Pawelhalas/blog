@@ -114,7 +114,7 @@ jobs:
         working-directory: .github/scripts
         run: pnpm install --frozen-lockfile
 
-      # The hero image is regenerated on every run, and gpt-image-1 is not
+      # The hero image is regenerated on every run, and the image model is not
       # deterministic - so a dry run used to draw one picture, show it, and the
       # real run would then commit a different one. That made the preview worse
       # than useless: it looked like a checkpoint but decided nothing.
