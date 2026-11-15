@@ -1,12 +1,14 @@
 ---
 title: Semi-skuteczna walka z pożeraczami czasu
-description: Pies, nuda i papierowy notatnik zrobiły dla mojej uwagi więcej niż wszystkie appki blokujące rozpraszacze. Notatki z wciąż nieskończonej walki z ekranami.
+description: Pies, nuda i papierowy notatnik — trzy rzeczy, które pomogły mi odzyskać czas i uwagę skuteczniej niż jakakolwiek aplikacja do blokowania rozpraszaczy.
 pubDatetime: 2026-11-15T20:13:36Z
 tags:
   - mniej szumu
-  - skupienie
+  - cyfrowy minimalizm
 featured: true
 ---
+
+![Czarno-biały border collie leży obok otwartego notatnika zapisanego odręcznymi notatkami i bazgrołami, na stronie spoczywa długopis.](../../assets/images/semi-skuteczna-walka-z-pozeraczami-czasu-violet.png)
 
 Nie będę ściemniał. W bojach z cyfrowym zaśmieceniem wciąż radzę sobie średnio. Może nie wpadam w kolejne królicze nory na Reddicie i nie scrolluję reelsów na Instagramie bez opamiętania, ale swoje mam za uszami. Na przestrzeni lat przetestowałem jednak wiele narzędzi i technik mających pomóc mi chronić czas i uwagę przed wrogimi algorytmami mediów społecznościowych. I choć faktycznie znalazłem kilka, które realnie poprawiły jakość mojego życia, to największą zmianę wygenerowała niespodziewanie zupełnie inna decyzja: przyjęcie do domu psa. 
 
@@ -28,7 +30,7 @@ W każdym razie, przeboje z psem i ich niespodziewane konsekwencje dały mi mocn
 
 ### Nuda i cisza
 
-Przede wszystkim, polubiłem się z nudą. Przeczytanie *Stolen Focus* Johanna Hari'ego zachęciło mnie do aktywnego szukania okazji, by pobyć ze swoimi myślami w samotności i ciszy. Gdy wychodzę biegać albo biorę psa na spacer, zostawiam w domu słuchawki. Do niedawna, towarzyszyły mi one niemal na każdym kroku. Gdy jadę gdzieś samochodem, próbuję powstrzymać się przed odpaleniem najnowszego odcinka jednego ze swoich ulubionych podcastów. Nawet wieczory po pracy staram się częściej spędzać z nosem w książce niż przed telewizorem, oglądając po raz kolejny najlepsze odcinki amerykańskiego The Office. *The Dinner Party* oglądałem conajmniej 50 razy. Na razie wystarczy. 
+Przede wszystkim, polubiłem się z nudą. Przeczytanie *Stolen Focus* Johanna Hari'ego zachęciło mnie do aktywnego szukania okazji, by pobyć ze swoimi myślami w samotności i ciszy. Gdy wychodzę biegać albo biorę psa na spacer, zostawiam w domu słuchawki. Do niedawna, towarzyszyły mi one niemal na każdym kroku. Gdy jadę gdzieś samochodem, próbuję powstrzymać się przed odpaleniem najnowszego odcinka jednego ze swoich ulubionych podcastów. Nawet wieczory po pracy staram się częściej spędzać z nosem w książce niż przed telewizorem, oglądając po raz kolejny najlepsze odcinki amerykańskiego The Office. *The Dinner Party* oglądałem co najmniej 50 razy. Na razie wystarczy. 
 
 Znalezienie przestrzeni na nudę i obcowanie z nią w ciszy pozwala, by mój mózg mógł "odpłynąć" w kierunku swobodnej i kreatywnej eksploracji różnych tematów. W ciszy znajduję odpowiedzi na większość życiowych zagwozdeki, rozwiązania zawodowych wyzwań. Z nudów rozpisuję dziesiątki pomysłów na własne biznesy i analizy oglądanych filmów (których to analiz póki co jeszcze tu nie wrzucam). Idea *Mniej szumu* również zrodziła się w ciszy. ;) 
 
