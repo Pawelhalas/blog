@@ -23,12 +23,25 @@ on:
         type: boolean
         default: true
 
-# One run per branch. Cancelling the older one is safe because a run is
-# resumable: whatever it committed before dying is picked up by the next, which
-# then opens the pull request. Without that property this would strand branches.
+# One run per branch at a time, and a newer run WAITS for the older one rather
+# than cancelling it.
+#
+# It used to cancel, on the reasoning that runs are resumable so the next one
+# would open the pull request. That next run never does any work: release.mjs
+# pushes its own "Prepare <slug> for publishing" commit with the PAT, which
+# queues a run in this group, which cancelled the run that pushed it - before
+# it reached the pull request step. The new run is then skipped by the job's
+# subject guard. Result: a prepared branch and no pull request, every time the
+# push landed before the PR step finished. Hit on 2026-09-20 (#60) and twice on
+# 2026-11-15 (#70).
+#
+# Waiting costs nothing here. The queued run for the Prepare commit starts after
+# this one ends and is skipped by the guard in seconds. If the author pushes
+# again meanwhile, GitHub keeps only the newest pending run, which is the one
+# that should do the work.
 concurrency:
   group: release-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write

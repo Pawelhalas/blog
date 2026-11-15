@@ -27,7 +27,9 @@ import {
   buildFrontmatter,
   heroImageMarkdown,
   isPublishedPost,
+  pipelineHero,
   POSTS_DIR,
+  replaceHeroImage,
   slugOf,
   splitFrontmatter,
   stripFeatured,
@@ -334,9 +336,6 @@ async function imageBrief({ title, body }) {
   return meta;
 }
 
-const HERO_IN_BODY =
-  /!\[([^\]]*)\]\(\s*<?(\.\.\/\.\.\/assets\/images\/[^)>\s]+)>?\s*\)/;
-
 async function main() {
   const base = mainRef();
   let candidates = releaseCandidates("HEAD", base);
@@ -395,8 +394,18 @@ async function main() {
     );
   }
 
-  const existingHero = body.match(HERO_IN_BODY);
+  // Only an image this pipeline put there counts as the hero: first thing in
+  // the body, named <slug>-<colour>.png. Without both checks [reimage] took the
+  // first local image anywhere in the post - an author's own photo - and
+  // overwrote its file. When it finds nothing, this is an ordinary run and the
+  // hero is prepended.
+  const existingHero = pipelineHero(body, slug, BACKGROUNDS);
   const reimage = REIMAGE && Boolean(data.description) && Boolean(existingHero);
+  if (REIMAGE && !reimage) {
+    say(
+      "[reimage] asked for, but there is no generated hero image at the top of the body to replace - preparing the post as a normal run instead."
+    );
+  }
   say(reimage ? `Reimaging: ${path}` : `Publishing: ${path}`);
 
   const log = readLog();
@@ -486,7 +495,7 @@ async function main() {
 
   // Reimaging reuses the filename and therefore the background: the rotation
   // is about consecutive posts looking different, and this is still one post.
-  const existingFile = reimage ? existingHero[2].replace(/^.*\//, "") : null;
+  const existingFile = reimage ? existingHero.file : null;
   const background = reimage
     ? (BACKGROUNDS.find(colour =>
         existingFile
@@ -555,7 +564,7 @@ async function main() {
     // Replaced via a function so a `$` in the alt text is not read as a
     // replacement pattern.
     finalBody = reimage
-      ? proofread.replace(HERO_IN_BODY, () => markdown)
+      ? replaceHeroImage(proofread, existingHero, markdown)
       : withHeroImage(proofread, markdown);
   }
   const rebuilt = frontmatter + finalBody;
@@ -721,9 +730,11 @@ async function main() {
         ? `Regenerate the hero image for ${slug}`
         : `Prepare ${slug} for publishing\n\nFrontmatter, hero image and featured flag set by release.yml.`
     );
-    // Pushed with the default token, whose pushes do not start workflow runs —
-    // this cannot retrigger release.yml. The PR step uses the PAT precisely
-    // because there the retrigger (of ci.yml) is the point.
+    // Pushed with the checkout's credentials, which are the PAT (see
+    // release.yml) - so this push DOES start another release.yml run. The job's
+    // subject guard skips it, and the workflow's concurrency group queues it
+    // behind this run instead of cancelling this one; see the comment there for
+    // the race that cost three pull requests before that was the case.
     git("push", "origin", `HEAD:${BRANCH}`);
   } else {
     summary(
