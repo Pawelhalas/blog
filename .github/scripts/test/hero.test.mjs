@@ -4,6 +4,7 @@ import { describe, test } from "node:test";
 import {
   heroImageMarkdown,
   pipelineHero,
+  placeHeroImage,
   replaceHeroImage,
   withHeroImage,
 } from "../lib/posts.mjs";
@@ -21,6 +22,7 @@ describe("pipelineHero", () => {
     assert.deepEqual(pipelineHero(body, slug, BACKGROUNDS), {
       alt: "A lighthouse at dusk",
       file: "my-post-peach.png",
+      background: "pale peach",
       markdown: hero,
     });
   });
@@ -91,5 +93,67 @@ describe("replaceHeroImage", () => {
     const found = pipelineHero(body, slug, BACKGROUNDS);
     const fresh = heroImageMarkdown("Costs $& and $1", "my-post-peach.png");
     assert.ok(replaceHeroImage(body, found, fresh).includes("Costs $& and $1"));
+  });
+});
+
+describe("placeHeroImage", () => {
+  // Every run goes through this. A release branch the pipeline already prepared
+  // starts with its hero; a re-run after an author's edit used to prepend a
+  // second one.
+  const fresh = heroImageMarkdown("A lighthouse at dawn", "my-post-peach.png");
+
+  test("prepends on a first run", () => {
+    assert.equal(
+      placeHeroImage("Prose.\n", slug, BACKGROUNDS, fresh),
+      `\n${fresh}\n\nProse.\n`
+    );
+  });
+
+  test("replaces rather than stacks on an already-prepared body", () => {
+    const prepared = withHeroImage(
+      "Prose, edited after the PR opened.\n",
+      hero
+    );
+    const out = placeHeroImage(prepared, slug, BACKGROUNDS, fresh);
+    assert.equal(out.match(/!\[/g).length, 1);
+    assert.equal(out, `\n${fresh}\n\nProse, edited after the PR opened.\n`);
+  });
+
+  test("is stable across repeated runs", () => {
+    let body = "Prose.\n";
+    for (let run = 0; run < 3; run++) {
+      body = placeHeroImage(body, slug, BACKGROUNDS, fresh);
+    }
+    assert.equal(body, `\n${fresh}\n\nProse.\n`);
+  });
+
+  test("finds the hero after proofreading changed its alt text", () => {
+    // The body is proofread between detection and placement; a corrected alt
+    // made the earlier match's markdown unfindable.
+    const prepared = withHeroImage(
+      "Prose.\n",
+      heroImageMarkdown("A lighthuose", "my-post-peach.png")
+    );
+    const proofread = prepared.replace("lighthuose", "lighthouse");
+    const out = placeHeroImage(proofread, slug, BACKGROUNDS, fresh);
+    assert.equal(out, `\n${fresh}\n\nProse.\n`);
+  });
+
+  test("keeps an author's leading photo and prepends above it", () => {
+    const body = `${photo}\n\nProse.\n`;
+    const out = placeHeroImage(body, slug, BACKGROUNDS, fresh);
+    assert.equal(out, `\n${fresh}\n\n${photo}\n\nProse.\n`);
+  });
+
+  test("reports the background the existing hero was drawn on", () => {
+    // release.mjs reuses this so a re-run keeps the same filename.
+    const prepared = withHeroImage(
+      "x",
+      heroImageMarkdown("alt", "my-post-grey-blue.png")
+    );
+    assert.equal(
+      pipelineHero(prepared, slug, BACKGROUNDS)?.background,
+      "pale grey-blue"
+    );
   });
 });

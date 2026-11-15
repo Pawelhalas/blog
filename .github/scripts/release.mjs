@@ -28,12 +28,11 @@ import {
   heroImageMarkdown,
   isPublishedPost,
   pipelineHero,
+  placeHeroImage,
   POSTS_DIR,
-  replaceHeroImage,
   slugOf,
   splitFrontmatter,
   stripFeatured,
-  withHeroImage,
 } from "./lib/posts.mjs";
 import {
   BACKGROUNDS,
@@ -397,8 +396,9 @@ async function main() {
   // Only an image this pipeline put there counts as the hero: first thing in
   // the body, named <slug>-<colour>.png. Without both checks [reimage] took the
   // first local image anywhere in the post - an author's own photo - and
-  // overwrote its file. When it finds nothing, this is an ordinary run and the
-  // hero is prepended.
+  // overwrote its file. When it finds nothing, this is a first run and the
+  // hero is prepended; when it finds one on an ordinary run, the branch was
+  // prepared already and the hero is kept (see below), not added a second time.
   const existingHero = pipelineHero(body, slug, BACKGROUNDS);
   const reimage = REIMAGE && Boolean(data.description) && Boolean(existingHero);
   if (REIMAGE && !reimage) {
@@ -493,18 +493,13 @@ async function main() {
     }
   }
 
-  // Reimaging reuses the filename and therefore the background: the rotation
-  // is about consecutive posts looking different, and this is still one post.
-  const existingFile = reimage ? existingHero.file : null;
-  const background = reimage
-    ? (BACKGROUNDS.find(colour =>
-        existingFile
-          .replace(/\.[a-z0-9]+$/i, "")
-          .endsWith(`-${colour.split(" ").at(-1)}`)
-      ) ?? nextBackground(log))
-    : nextBackground(log);
+  // A post that already has its hero keeps the filename and therefore the
+  // background, whether this is [reimage] or a re-run after an edit: the
+  // rotation is about consecutive posts looking different, and this is still
+  // one post. A new name would also orphan the old PNG in src/assets/images.
+  const background = existingHero?.background ?? nextBackground(log);
   const imageFile =
-    existingFile ?? `${slug}-${background.split(" ").at(-1)}.png`;
+    existingHero?.file ?? `${slug}-${background.split(" ").at(-1)}.png`;
   let image = null;
   let imageError = null;
   let imageReused = false;
@@ -515,10 +510,20 @@ async function main() {
   // no preview, because it looked like a checkpoint and was not one. Reimaging
   // deliberately skips this: a fresh picture is the whole point.
   const previewPath = `${PREVIEW_DIR}/${imageFile}`;
+  //
+  // The same goes for a branch that was already prepared: its hero is in the
+  // pull request Pawel has been looking at, and an edit to the copy is not a
+  // request for a new picture. That reuse ignores GENERATE_IMAGE - turning
+  // generation off must not report the existing image as missing.
+  const committedPath = `${ASSETS_DIR}/${imageFile}`;
   if (!reimage && GENERATE_IMAGE && existsSync(previewPath)) {
     image = readFileSync(previewPath);
     imageReused = true;
     say(`Reusing the previewed hero image from ${previewPath}.`);
+  } else if (!reimage && existingHero && existsSync(committedPath)) {
+    image = readFileSync(committedPath);
+    imageReused = true;
+    say(`Keeping the hero image already on this branch: ${committedPath}.`);
   }
 
   if (image) {
@@ -561,11 +566,7 @@ async function main() {
   let finalBody = proofread;
   if (image) {
     const markdown = heroImageMarkdown(meta.imageAlt, imageFile);
-    // Replaced via a function so a `$` in the alt text is not read as a
-    // replacement pattern.
-    finalBody = reimage
-      ? replaceHeroImage(proofread, existingHero, markdown)
-      : withHeroImage(proofread, markdown);
+    finalBody = placeHeroImage(proofread, slug, BACKGROUNDS, markdown);
   }
   const rebuilt = frontmatter + finalBody;
 
@@ -579,7 +580,7 @@ async function main() {
         (reimage
           ? " — unchanged, this is the same post."
           : ` — previous two were ${recentBackgrounds(log).join(", ") || "none"}.`) +
-        `\n\nSaved to \`${ASSETS_DIR}/${imageFile}\`${reimage ? ", replacing the previous one" : " and inserted as the first body image"}.\n\n` +
+        `\n\nSaved to \`${ASSETS_DIR}/${imageFile}\`${reimage ? ", replacing the previous one" : existingHero ? ", kept as the first body image" : " and inserted as the first body image"}.\n\n` +
         `**Subject:** ${meta.imageSubject}\n\n**Alt:** ${meta.imageAlt}`
       : `⚠️ **No image.** ${imageError}\n\nThe post is otherwise complete. Add an image by hand, or push an empty commit containing \`[reimage]\` to retry only this step.`,
   ];

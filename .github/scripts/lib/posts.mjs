@@ -133,11 +133,11 @@ export function pipelineHero(body, slug, colours) {
   const match = body.match(LEADING_IMAGE);
   if (!match) return null;
   const file = match[2].replace(/^.*\//, "");
-  const ours = colours.some(
+  const background = colours.find(
     colour => file === `${slug}-${colour.split(" ").at(-1)}.png`
   );
-  if (!ours) return null;
-  return { alt: match[1], file, markdown: match[0].trimStart() };
+  if (!background) return null;
+  return { alt: match[1], file, background, markdown: match[0].trimStart() };
 }
 
 /** Swaps the leading hero `pipelineHero` found for `markdown`. */
@@ -148,4 +148,22 @@ export function replaceHeroImage(body, hero, markdown) {
 
 export function withHeroImage(body, markdown) {
   return `\n${markdown}\n\n${body.replace(/^\s+/, "")}`;
+}
+
+/**
+ * Puts `markdown` in the hero slot: replaces the pipeline's own hero when the
+ * body already starts with one, and prepends otherwise.
+ *
+ * Every run goes through this, not just [reimage]. A release branch that was
+ * already prepared - the author pushes an edit after the PR opened - has a body
+ * that starts with the generated hero, and prepending unconditionally gave it a
+ * second one. It looks the hero up itself rather than taking one found earlier
+ * because the body may have been proofread since, and an alt-text correction
+ * would make the earlier match's markdown impossible to find.
+ */
+export function placeHeroImage(body, slug, colours, markdown) {
+  const hero = pipelineHero(body, slug, colours);
+  return hero
+    ? replaceHeroImage(body, hero, markdown)
+    : withHeroImage(body, markdown);
 }
