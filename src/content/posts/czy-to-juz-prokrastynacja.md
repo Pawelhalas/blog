@@ -6,7 +6,6 @@ tags:
   - projekty
   - AI
   - product management
-featured: true
 ---
 
 ![Rozbudowana maszyna z taśmociągiem wypuszczająca pustą kartkę papieru, obok pustego biurka z krzesłem](../../assets/images/czy-to-juz-prokrastynacja-green.png)
