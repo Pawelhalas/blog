@@ -4,7 +4,7 @@ decided once and reused, so the blog's images read as one set rather than as
 eight separate experiments.
 
 The pipeline substitutes {{SUBJECT}} and {{BACKGROUND}} and sends the rest
-verbatim to gpt-image-1 at 1536x1024. Everything below the marker line is the
+verbatim to the image model at 1536x1024. Everything below the marker line is the
 prompt. Edit this file to change the house style; do not change it per post.
 -->
 

@@ -501,7 +501,7 @@ async function main() {
   let imageReused = false;
 
   // An image already previewed for this branch is reused rather than redrawn.
-  // gpt-image-1 is non-deterministic, so regenerating produced a different
+  // The image model is non-deterministic, so regenerating produced a different
   // picture from the one reviewed - which made the dry-run preview worse than
   // no preview, because it looked like a checkpoint and was not one. Reimaging
   // deliberately skips this: a fresh picture is the whole point.
