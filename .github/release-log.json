@@ -28,6 +28,13 @@
       "publishedAt": "2026-09-20T22:01:12+02:00",
       "commit": "736450373ec808298a3d6347b7e385ef55875dd4",
       "imageBackground": "pale green"
+    },
+    {
+      "slug": "semi-skuteczna-walka-z-pozeraczami-czasu",
+      "path": "src/content/posts/semi-skuteczna-walka-z-pozeraczami-czasu.md",
+      "publishedAt": "2026-11-15T23:33:27+01:00",
+      "commit": "b831c6eb8fd9efd8d51c5c84c031df33e3978a0d",
+      "imageBackground": "pale violet"
     }
   ],
   "misses": [
