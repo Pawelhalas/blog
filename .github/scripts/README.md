@@ -167,15 +167,16 @@ that run. See "When something goes wrong" for what happened before the second.
 
 ## When something goes wrong
 
-| When                                         | Then                                                                                                                             |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `astro check`, lint or format fails          | PR goes red, merge blocked. Fix locally, push to the same branch                                                                 |
-| Image generation fails                       | One retry, then the PR opens without an image, labelled `needs-image`                                                            |
-| Image is valid but wrong                     | Push an empty commit containing `[reimage]` — only the image is regenerated, frontmatter and copy are untouched                  |
-| `[reimage]` on a post with no generated hero | Runs as a normal preparation and **prepends** a hero. It never replaces an image it did not make — see below                     |
-| Branch prepared, but no PR opened            | Fixed 2026-11-15. If it recurs: merge `main` into the branch and push, or open the PR by hand with the `automated-release` label |
-| Zero or two candidate posts                  | Hard failure with the file list. One branch, one post                                                                            |
-| Post is `.mdx`                               | Hard failure. MDX entries expose no `body`, so `getHeroImage.ts` can never find a hero image                                     |
+| When                                         | Then                                                                                                                                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `astro check`, lint or format fails          | PR goes red, merge blocked. Fix locally, push to the same branch                                                                                                                                              |
+| Image generation fails                       | One retry, then the PR opens without an image, labelled `needs-image`                                                                                                                                         |
+| Image is valid but wrong                     | Push an empty commit containing `[reimage]` — only the image is regenerated, frontmatter and copy are untouched                                                                                               |
+| `[reimage]` on a post with no generated hero | Runs as a normal preparation and **prepends** a hero. It never replaces an image it did not make — see below                                                                                                  |
+| Author pushes an edit after the PR opened    | The run keeps the hero already on the branch: same file, same picture, still the first body image. Fixed 2026-11-15; before that it prepended a second hero. `[reimage]` is the only way to get a new picture |
+| Branch prepared, but no PR opened            | Fixed 2026-11-15. If it recurs: merge `main` into the branch and push, or open the PR by hand with the `automated-release` label                                                                              |
+| Zero or two candidate posts                  | Hard failure with the file list. One branch, one post                                                                                                                                                         |
+| Post is `.mdx`                               | Hard failure. MDX entries expose no `body`, so `getHeroImage.ts` can never find a hero image                                                                                                                  |
 
 ### What `[reimage]` will replace
 
